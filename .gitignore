@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# runtime data
+.autosave/
+_backups/
+*.tmp
+*.log
+
+# build output
+build/
+dist/
+*.spec
