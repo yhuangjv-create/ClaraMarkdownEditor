@@ -120,6 +120,8 @@ STRINGS: dict[str, tuple[str, str]] = {
     "recent.clear": ("清空所有记录", "Clear all recent"),
     "recent.cleared": ("已清空最近文件", "Recent files cleared"),
     "recent.settings": ("设置", "Settings"),
+    "recent.hide": ("不显示最近文件", "Don't show recent files"),
+    "recent.hidden": ("最近文件已隐藏", "Recent files are hidden"),
     "recent.limit_label": ("显示最近文件条数（1-50）：", "Number of recent files to show (1-50):"),
     "recent.limit_saved": ("最近文件显示 {n} 条", "Showing {n} recent files"),
     "recent.days_label": ("仅显示最近多少天内打开的文件：", "Only show files opened within (days):"),

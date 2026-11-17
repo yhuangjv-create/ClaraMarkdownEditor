@@ -621,8 +621,12 @@ class MainWindow(QMainWindow):
         menu = RecentMenu(self)
         menu.remove_label = self.i18n.t("recent.remove")
         menu.removeRequested.connect(self._remove_recent)
-        files = self.settings.visible_recent_files()
-        if not files:
+        hidden = self.settings.recent_hidden
+        files = [] if hidden else self.settings.visible_recent_files()
+        if hidden:
+            hint = menu.addAction(self.i18n.t("recent.hidden"))
+            hint.setEnabled(False)
+        elif not files:
             empty = menu.addAction(self.i18n.t("msg.no_recent"))
             empty.setEnabled(False)
         for path in files:
@@ -632,12 +636,19 @@ class MainWindow(QMainWindow):
             action.setToolTip(str(item))
             action.triggered.connect(lambda _=False, f=str(item): self.open_path(f))
         menu.addSeparator()
+        hide_action = menu.addAction(self.i18n.t("recent.hide"))
+        hide_action.setCheckable(True)
+        hide_action.setChecked(hidden)
+        hide_action.toggled.connect(self._toggle_recent_hidden)
         settings_action = menu.addAction(self.i18n.t("recent.settings"))
         settings_action.triggered.connect(self._recent_settings)
         if files:
             clear = menu.addAction(self.i18n.t("recent.clear"))
             clear.triggered.connect(self._clear_recent)
         return menu
+
+    def _toggle_recent_hidden(self, hidden: bool) -> None:
+        self.settings.recent_hidden = hidden
 
     def _recent_settings(self) -> None:
         dialog = QDialog(self)
