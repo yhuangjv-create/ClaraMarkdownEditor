@@ -90,6 +90,9 @@ class Settings:
         files.insert(0, path)
         self.set_value("files/recent", files[:limit])
 
+    def remove_recent_file(self, path: str) -> None:
+        self.set_value("files/recent", [p for p in self.recent_files() if p != path])
+
     @property
     def last_dir(self) -> str:
         return str(self.value("files/last_dir", ""))

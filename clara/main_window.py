@@ -12,7 +12,7 @@ import json
 import time
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QCloseEvent, QCursor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -60,6 +60,33 @@ CONVERT_ACTIONS = {
     "act.docx2md",
     "act.pdf2md",
 }
+
+
+class RecentMenu(QMenu):
+    """最近文件下拉菜单：在条目上点右键可移除该记录。"""
+
+    removeRequested = Signal(str)
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.remove_label = ""
+        self.setToolTipsVisible(True)
+
+    def mousePressEvent(self, event) -> None:
+        if event.button() == Qt.RightButton:
+            action = self.actionAt(event.position().toPoint())
+            if action is not None and action.data():
+                path = str(action.data())
+                submenu = QMenu(self)
+                remove = submenu.addAction(self.remove_label)
+                remove.triggered.connect(lambda _=False, p=path: self._request_remove(p))
+                submenu.exec(event.globalPosition().toPoint())
+                return
+        super().mousePressEvent(event)
+
+    def _request_remove(self, path: str) -> None:
+        self.close()
+        self.removeRequested.emit(path)
 
 
 class MainWindow(QMainWindow):
@@ -587,9 +614,10 @@ class MainWindow(QMainWindow):
         self.current_file = Path(path)
         return self.save_document()
 
-    def _recent_menu(self) -> QMenu:
-        menu = QMenu(self)
-        menu.setToolTipsVisible(True)
+    def _recent_menu(self) -> RecentMenu:
+        menu = RecentMenu(self)
+        menu.remove_label = self.i18n.t("recent.remove")
+        menu.removeRequested.connect(self._remove_recent)
         files = [p for p in self.settings.recent_files() if Path(p).exists()]
         if not files:
             empty = menu.addAction(self.i18n.t("msg.no_recent"))
@@ -598,9 +626,16 @@ class MainWindow(QMainWindow):
         for path in files:
             item = Path(path)
             action = menu.addAction(item.name)
+            action.setData(str(item))
             action.setToolTip(str(item))
             action.triggered.connect(lambda _=False, f=str(item): self.open_path(f))
         return menu
+
+    def _remove_recent(self, path: str) -> None:
+        self.settings.remove_recent_file(path)
+        self.statusBar().showMessage(
+            self.i18n.t("recent.removed", name=Path(path).name), 2500
+        )
 
     def show_recent(self) -> None:
         menu = self._recent_menu()
