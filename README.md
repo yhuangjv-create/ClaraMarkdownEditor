@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.2.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.2.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -245,6 +245,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.2.1 — Recent button no longer stays highlighted
+- After the Recent dropdown closes, the Ribbon button is reset (`setDown(False)`, focus cleared, synthetic leave event), so its hover/pressed background no longer sticks.
 
 ### 1.2.0 — Consistent Save As behaviour
 - “Save As” for Markdown files now uses the same conflict prompt as Word/PDF export: Overwrite, Save as… (numbered name pre-filled) or Cancel, instead of silently replacing an existing file.

@@ -12,7 +12,7 @@ import json
 import time
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import QEvent, Qt, QTimer, Signal
 from PySide6.QtGui import QCloseEvent, QCursor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -702,6 +702,11 @@ class MainWindow(QMainWindow):
         button = self.ribbon.button_for("act.recent")
         if button is not None:
             menu.exec(button.mapToGlobal(button.rect().bottomLeft()))
+            # 菜单为模态，关闭后按钮收不到 leave 事件，需手动清除悬停/按下状态
+            button.setDown(False)
+            button.clearFocus()
+            QApplication.sendEvent(button, QEvent(QEvent.Leave))
+            button.update()
         else:
             menu.exec(QCursor.pos())
 
