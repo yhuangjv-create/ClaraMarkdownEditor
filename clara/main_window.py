@@ -17,7 +17,9 @@ from PySide6.QtGui import QCloseEvent, QCursor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
+    QDialogButtonBox,
     QFileDialog,
+    QFormLayout,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -25,6 +27,7 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
     QPushButton,
+    QSpinBox,
     QSplitter,
     QStackedWidget,
     QStatusBar,
@@ -618,9 +621,7 @@ class MainWindow(QMainWindow):
         menu = RecentMenu(self)
         menu.remove_label = self.i18n.t("recent.remove")
         menu.removeRequested.connect(self._remove_recent)
-        files = [p for p in self.settings.recent_files() if Path(p).exists()][
-            : self.settings.recent_limit
-        ]
+        files = self.settings.visible_recent_files()
         if not files:
             empty = menu.addAction(self.i18n.t("msg.no_recent"))
             empty.setEnabled(False)
@@ -639,19 +640,33 @@ class MainWindow(QMainWindow):
         return menu
 
     def _recent_settings(self) -> None:
-        count, ok = QInputDialog.getInt(
-            self,
-            self.i18n.t("recent.settings"),
-            self.i18n.t("recent.limit_label"),
-            self.settings.recent_limit,
-            1,
-            50,
-            1,
-        )
-        if not ok:
+        dialog = QDialog(self)
+        dialog.setWindowTitle(self.i18n.t("recent.settings"))
+        form = QFormLayout(dialog)
+        count = QSpinBox(dialog)
+        count.setRange(1, 50)
+        count.setValue(self.settings.recent_limit)
+        days = QSpinBox(dialog)
+        days.setRange(0, 36500)
+        days.setSpecialValueText(self.i18n.t("recent.days_none"))
+        days.setValue(self.settings.recent_days)
+        form.addRow(self.i18n.t("recent.limit_label"), count)
+        form.addRow(self.i18n.t("recent.days_label"), days)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, dialog)
+        buttons.button(QDialogButtonBox.Ok).setText(self.i18n.t("common.ok"))
+        buttons.button(QDialogButtonBox.Cancel).setText(self.i18n.t("common.cancel"))
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+        if dialog.exec() != QDialog.Accepted:
             return
-        self.settings.recent_limit = count
-        self.statusBar().showMessage(self.i18n.t("recent.limit_saved", n=count), 2500)
+        self.settings.recent_limit = count.value()
+        self.settings.recent_days = days.value()
+        if days.value() > 0:
+            message = self.i18n.t("recent.saved_both", n=count.value(), d=days.value())
+        else:
+            message = self.i18n.t("recent.limit_saved", n=count.value())
+        self.statusBar().showMessage(message, 2500)
 
     def _clear_recent(self) -> None:
         self.settings.clear_recent_files()
