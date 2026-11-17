@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QCloseEvent, QKeySequence, QShortcut
+from PySide6.QtGui import QCloseEvent, QCursor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QLabel,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QSplitter,
     QStackedWidget,
@@ -435,16 +436,28 @@ class MainWindow(QMainWindow):
         self.current_file = Path(path)
         return self.save_document()
 
-    def show_recent(self) -> None:
+    def _recent_menu(self) -> QMenu:
+        menu = QMenu(self)
+        menu.setToolTipsVisible(True)
         files = [p for p in self.settings.recent_files() if Path(p).exists()]
         if not files:
-            QMessageBox.information(self, self.i18n.t("act.recent"), self.i18n.t("conv.no_file"))
-            return
-        item, ok = QInputDialog.getItem(
-            self, self.i18n.t("act.recent"), self.i18n.t("act.recent"), files, 0, False
-        )
-        if ok and item:
-            self.open_path(item)
+            empty = menu.addAction(self.i18n.t("msg.no_recent"))
+            empty.setEnabled(False)
+            return menu
+        for path in files:
+            item = Path(path)
+            action = menu.addAction(item.name)
+            action.setToolTip(str(item))
+            action.triggered.connect(lambda _=False, f=str(item): self.open_path(f))
+        return menu
+
+    def show_recent(self) -> None:
+        menu = self._recent_menu()
+        button = self.ribbon.button_for("act.recent")
+        if button is not None:
+            menu.exec(button.mapToGlobal(button.rect().bottomLeft()))
+        else:
+            menu.exec(QCursor.pos())
 
     # ---------------- 导出 / 导入 ----------------
     def _export_target(self, suffix: str) -> Path | None:

@@ -220,6 +220,7 @@ class RibbonBar(QWidget):
 
         self._tab_buttons: list[QToolButton] = []
         self._pages: list[QWidget] = []
+        self._action_buttons: dict[str, RibbonButton] = {}
         self.rebuild()
 
     # ------------------------------------------------------------------
@@ -230,6 +231,7 @@ class RibbonBar(QWidget):
         self._clear(self._body_layout)
         self._tab_buttons.clear()
         self._pages.clear()
+        self._action_buttons.clear()
 
         for tab_key, _groups in RIBBON_LAYOUT:
             btn = QToolButton()
@@ -298,6 +300,7 @@ class RibbonBar(QWidget):
                         lambda _=False, k=action_key: self.actionTriggered.emit(k)
                     )
                     group.buttons_row.addWidget(button)
+                    self._action_buttons[action_key] = button
                 page_layout.addWidget(group)
             page_layout.addStretch(1)
             self._pages.append(page)
@@ -356,6 +359,10 @@ class RibbonBar(QWidget):
     def set_document_title(self, title: str) -> None:
         if hasattr(self, "doc_label"):
             self.doc_label.setText(title)
+
+    def button_for(self, action_key: str) -> RibbonButton | None:
+        """返回动作对应的按钮（用于把下拉菜单挂到按钮下方）。"""
+        return self._action_buttons.get(action_key)
 
     def _theme_label(self) -> str:
         """按钮显示“将切换到的主题”：浅色时显示深色主题，反之亦然。"""
