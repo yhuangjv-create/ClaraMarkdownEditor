@@ -85,10 +85,23 @@ class Settings:
             return [raw] if raw else []
         return [str(x) for x in raw]
 
-    def add_recent_file(self, path: str, limit: int = 10) -> None:
+    @property
+    def recent_limit(self) -> int:
+        try:
+            return min(20, max(1, int(self.value("files/recent_limit", 10))))
+        except (TypeError, ValueError):
+            return 10
+
+    @recent_limit.setter
+    def recent_limit(self, count: int) -> None:
+        count = min(20, max(1, int(count)))
+        self.set_value("files/recent_limit", count)
+        self.set_value("files/recent", self.recent_files()[:count])
+
+    def add_recent_file(self, path: str) -> None:
         files = [p for p in self.recent_files() if p != path]
         files.insert(0, path)
-        self.set_value("files/recent", files[:limit])
+        self.set_value("files/recent", files[: self.recent_limit])
 
     def remove_recent_file(self, path: str) -> None:
         self.set_value("files/recent", [p for p in self.recent_files() if p != path])

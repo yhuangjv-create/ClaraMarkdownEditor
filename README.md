@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.1.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.1.3** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -63,7 +63,7 @@ The conversion page also provides:
 
 ### 2.3 File management
 
-New, open, save, save-as, recent files (max 10), export Word/PDF, import Word/PDF, and drag-and-drop opening. Multiple documents stay open as tabs; closing a dirty tab asks whether to save it. In the Recent list, right-click an entry and choose “Remove from recent” to drop it, or use “Clear all recent” at the bottom to empty the list.
+New, open, save, save-as, recent files (1–20, configurable), export Word/PDF, import Word/PDF, and drag-and-drop opening. Multiple documents stay open as tabs; closing a dirty tab asks whether to save it. In the Recent list, right-click an entry and choose “Remove from recent” to drop it, or use “Clear all recent” at the bottom to empty the list. “Settings” in the same menu sets how many entries are shown (1–20).
 
 ---
 
@@ -241,6 +241,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.1.3 — Recent list settings
+- Added “Settings” to the Recent dropdown; it asks for the number of entries to show (1–20) and stores the choice. The list length updates immediately.
 
 ### 1.1.2 — Clear all recent
 - Added a “Clear all recent” item at the bottom of the Recent dropdown, separated from the file entries.

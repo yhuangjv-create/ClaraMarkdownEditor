@@ -618,11 +618,12 @@ class MainWindow(QMainWindow):
         menu = RecentMenu(self)
         menu.remove_label = self.i18n.t("recent.remove")
         menu.removeRequested.connect(self._remove_recent)
-        files = [p for p in self.settings.recent_files() if Path(p).exists()]
+        files = [p for p in self.settings.recent_files() if Path(p).exists()][
+            : self.settings.recent_limit
+        ]
         if not files:
             empty = menu.addAction(self.i18n.t("msg.no_recent"))
             empty.setEnabled(False)
-            return menu
         for path in files:
             item = Path(path)
             action = menu.addAction(item.name)
@@ -630,9 +631,27 @@ class MainWindow(QMainWindow):
             action.setToolTip(str(item))
             action.triggered.connect(lambda _=False, f=str(item): self.open_path(f))
         menu.addSeparator()
-        clear = menu.addAction(self.i18n.t("recent.clear"))
-        clear.triggered.connect(self._clear_recent)
+        settings_action = menu.addAction(self.i18n.t("recent.settings"))
+        settings_action.triggered.connect(self._recent_settings)
+        if files:
+            clear = menu.addAction(self.i18n.t("recent.clear"))
+            clear.triggered.connect(self._clear_recent)
         return menu
+
+    def _recent_settings(self) -> None:
+        count, ok = QInputDialog.getInt(
+            self,
+            self.i18n.t("recent.settings"),
+            self.i18n.t("recent.limit_label"),
+            self.settings.recent_limit,
+            1,
+            20,
+            1,
+        )
+        if not ok:
+            return
+        self.settings.recent_limit = count
+        self.statusBar().showMessage(self.i18n.t("recent.limit_saved", n=count), 2500)
 
     def _clear_recent(self) -> None:
         self.settings.clear_recent_files()
