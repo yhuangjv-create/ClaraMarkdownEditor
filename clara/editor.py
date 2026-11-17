@@ -61,6 +61,8 @@ class LineNumberArea(QWidget):
 class SourceEditor(QPlainTextEdit):
     """带行号、当前行高亮、4 空格缩进的 Markdown 源码编辑器。"""
 
+    filesDropped = Signal(list)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.dark = False
@@ -158,6 +160,65 @@ class SourceEditor(QPlainTextEdit):
         self.dark = dark
         self.highlight_current_line()
         self.line_number_area.update()
+
+    # ---------------- 文件拖拽 ----------------
+    def _dropped_files(self, event) -> list[str]:
+        mime = event.mimeData()
+        if not mime.hasUrls():
+            return []
+        return [u.toLocalFile() for u in mime.urls() if u.isLocalFile()]
+
+    def dragEnterEvent(self, event) -> None:
+        if self._dropped_files(event):
+            event.acceptProposedAction()
+            return
+        super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        if self._dropped_files(event):
+            event.acceptProposedAction()
+            return
+        super().dragMoveEvent(event)
+
+    def dropEvent(self, event) -> None:
+        paths = self._dropped_files(event)
+        if paths:
+            event.acceptProposedAction()
+            self.filesDropped.emit(paths)
+            return
+        super().dropEvent(event)
+
+
+class WysiwygEditor(QTextEdit):
+    """所见即所得编辑器，文件拖入时交回主窗口处理。"""
+
+    filesDropped = Signal(list)
+
+    def _dropped_files(self, event) -> list[str]:
+        mime = event.mimeData()
+        if not mime.hasUrls():
+            return []
+        return [u.toLocalFile() for u in mime.urls() if u.isLocalFile()]
+
+    def dragEnterEvent(self, event) -> None:
+        if self._dropped_files(event):
+            event.acceptProposedAction()
+            return
+        super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        if self._dropped_files(event):
+            event.acceptProposedAction()
+            return
+        super().dragMoveEvent(event)
+
+    def dropEvent(self, event) -> None:
+        paths = self._dropped_files(event)
+        if paths:
+            event.acceptProposedAction()
+            self.filesDropped.emit(paths)
+            return
+        super().dropEvent(event)
 
 
 class FindBar(QFrame):
@@ -260,6 +321,7 @@ class MarkdownEditor(QWidget):
     documentLoaded = Signal()
     cursorMoved = Signal(int, int)  # 行, 列
     modeChanged = Signal(str)
+    filesDropped = Signal(list)
 
     def __init__(self, i18n: I18n, dark: bool = False, parent=None):
         super().__init__(parent)
@@ -284,9 +346,11 @@ class MarkdownEditor(QWidget):
         self.preview.setObjectName("Preview")
         self.preview.setOpenExternalLinks(True)
         self.preview.setFrameShape(QFrame.NoFrame)
+        self.preview.setAcceptDrops(False)
+        self.preview.viewport().setAcceptDrops(False)
         self.splitter.addWidget(self.preview)
 
-        self.wysiwyg = QTextEdit()
+        self.wysiwyg = WysiwygEditor()
         self.wysiwyg.setObjectName("Wysiwyg")
         self.wysiwyg.setAcceptRichText(True)
         self.wysiwyg.setFrameShape(QFrame.NoFrame)
@@ -311,6 +375,8 @@ class MarkdownEditor(QWidget):
         self.source.textChanged.connect(self._on_source_changed)
         self.source.cursorPositionChanged.connect(self._emit_cursor)
         self.wysiwyg.textChanged.connect(self._on_wysiwyg_changed)
+        self.source.filesDropped.connect(self.filesDropped)
+        self.wysiwyg.filesDropped.connect(self.filesDropped)
 
         self._connect_scrollbars()
         self.set_mode(MODE_SPLIT, emit=False)

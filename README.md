@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.0.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
+Version: **1.0.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
 
 ---
 
@@ -235,6 +235,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ---
 
 ## 8. Version history
+
+### 1.0.1 — Drag-and-drop fix
+- Fixed: dropping a file anywhere inside the editor (source, split preview or WYSIWYG) now opens it instead of inserting a `file:///...` text line.
+- File drops are forwarded from the editor widgets to the main window; source/Word/PDF handling is unchanged.
 
 ### 1.0.0 — Initial release
 - Word-style Ribbon UI (File / Home / Insert / View / Convert), collapsible.

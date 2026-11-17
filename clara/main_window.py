@@ -110,6 +110,7 @@ class MainWindow(QMainWindow):
         self.editor.cursorMoved.connect(self._on_cursor_moved)
         self.editor.modeChanged.connect(self._on_mode_changed)
         self.editor.documentLoaded.connect(self._on_document_loaded)
+        self.editor.filesDropped.connect(self._handle_dropped_files)
         self.main_splitter.addWidget(self.editor)
 
         self.main_splitter.setStretchFactor(0, 0)
@@ -666,22 +667,30 @@ class MainWindow(QMainWindow):
             event.acceptProposedAction()
 
     def dropEvent(self, event) -> None:
-        urls = [u for u in event.mimeData().urls() if u.isLocalFile()]
-        if not urls:
-            return
-        file = Path(urls[0].toLocalFile())
-        suffix = file.suffix.lower()
-        if suffix in (".md", ".markdown"):
-            if self._maybe_save():
-                self.open_path(file)
-        elif suffix == ".docx":
-            self.pages.setCurrentIndex(1)
-            self.convert_page.set_direction("docx2md")
-            self.convert_page.set_source_file(str(file))
-        elif suffix == ".pdf":
-            self.pages.setCurrentIndex(1)
-            self.convert_page.set_direction("pdf2md")
-            self.convert_page.set_source_file(str(file))
+        paths = [u.toLocalFile() for u in event.mimeData().urls() if u.isLocalFile()]
+        if paths:
+            event.acceptProposedAction()
+            self._handle_dropped_files(paths)
+
+    def _handle_dropped_files(self, paths: list[str]) -> None:
+        """处理拖入窗口或编辑区的本地文件。"""
+        for path in paths:
+            file = Path(path)
+            suffix = file.suffix.lower()
+            if suffix in (".md", ".markdown"):
+                if self._maybe_save():
+                    self.open_path(file)
+                return
+            if suffix == ".docx":
+                self.pages.setCurrentIndex(1)
+                self.convert_page.set_direction("docx2md")
+                self.convert_page.set_source_file(str(file))
+                return
+            if suffix == ".pdf":
+                self.pages.setCurrentIndex(1)
+                self.convert_page.set_direction("pdf2md")
+                self.convert_page.set_source_file(str(file))
+                return
 
     def closeEvent(self, event: QCloseEvent) -> None:
         if not self._maybe_save():
