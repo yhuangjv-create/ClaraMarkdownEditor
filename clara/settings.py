@@ -88,13 +88,13 @@ class Settings:
     @property
     def recent_limit(self) -> int:
         try:
-            return min(20, max(1, int(self.value("files/recent_limit", 10))))
+            return min(50, max(1, int(self.value("files/recent_limit", 10))))
         except (TypeError, ValueError):
             return 10
 
     @recent_limit.setter
     def recent_limit(self, count: int) -> None:
-        count = min(20, max(1, int(count)))
+        count = min(50, max(1, int(count)))
         self.set_value("files/recent_limit", count)
         self.set_value("files/recent", self.recent_files()[:count])
 

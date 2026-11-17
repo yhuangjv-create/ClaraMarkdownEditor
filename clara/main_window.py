@@ -645,7 +645,7 @@ class MainWindow(QMainWindow):
             self.i18n.t("recent.limit_label"),
             self.settings.recent_limit,
             1,
-            20,
+            50,
             1,
         )
         if not ok:

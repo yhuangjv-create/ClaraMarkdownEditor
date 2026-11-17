@@ -120,7 +120,7 @@ STRINGS: dict[str, tuple[str, str]] = {
     "recent.clear": ("清空所有记录", "Clear all recent"),
     "recent.cleared": ("已清空最近文件", "Recent files cleared"),
     "recent.settings": ("设置", "Settings"),
-    "recent.limit_label": ("显示最近文件条数（1-20）：", "Number of recent files to show (1-20):"),
+    "recent.limit_label": ("显示最近文件条数（1-50）：", "Number of recent files to show (1-50):"),
     "recent.limit_saved": ("最近文件显示 {n} 条", "Showing {n} recent files"),
     "recent.removed": ("已从最近文件移除：{name}", "Removed from recent files: {name}"),
     "conv.need_file": ("请先选择一个源文件。", "Please choose a source file first."),
