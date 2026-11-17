@@ -34,6 +34,7 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
                 [
                     ("act.new", "+"),
                     ("act.open", "O"),
+                    ("act.recent", "R"),
                     ("act.save", "S"),
                     ("act.save_as", "A"),
                 ],
@@ -50,7 +51,6 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
             (
                 "group.tools",
                 [
-                    ("act.recent", "R"),
                     ("act.exit", "X"),
                 ],
             ),
