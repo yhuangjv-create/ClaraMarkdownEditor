@@ -141,11 +141,9 @@ class MainWindow(QMainWindow):
         # 大纲显示状态
         self.outline.setVisible(self.settings.outline_visible)
 
-        # 恢复上次的编辑模式
-        mode = self.settings.editor_mode
-        if mode not in (MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG):
-            mode = MODE_SPLIT
-        self.editor.set_mode(mode, emit=False)
+        # 初始页面固定为分屏预览
+        self.editor.set_mode(MODE_SPLIT, emit=False)
+        self.settings.editor_mode = MODE_SPLIT
 
     # ------------------------------------------------------------------
     # 定时器：自动保存 / 字数统计 / 大纲刷新

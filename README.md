@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.0.3** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
+Version: **1.0.4** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
 
 ---
 
@@ -235,6 +235,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ---
 
 ## 8. Version history
+
+### 1.0.4 — Startup mode
+- The app now always starts in **Split Preview** mode instead of restoring the last-used mode.
 
 ### 1.0.3 — Theme button label
 - Fixed: the theme toggle button kept showing “Dark Theme” after switching; it now always shows the theme you will switch to (“Light Theme” / “Dark Theme”, 浅色主题 / 深色主题), in both the top-right and the View tab.
