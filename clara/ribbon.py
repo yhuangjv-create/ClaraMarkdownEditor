@@ -262,8 +262,8 @@ class RibbonBar(QWidget):
 
         self.theme_button = QToolButton()
         self.theme_button.setObjectName("MiniButton")
-        self.theme_button.setText(self.i18n.t("act.theme"))
-        self.theme_button.setToolTip(self.i18n.t("act.theme"))
+        self.theme_button.setText(self._theme_label())
+        self.theme_button.setToolTip(self._theme_label())
         self.theme_button.setCursor(Qt.PointingHandCursor)
         self.theme_button.clicked.connect(self.themeToggled.emit)
         self._top_layout.addWidget(self.theme_button)
@@ -291,7 +291,7 @@ class RibbonBar(QWidget):
                     button = RibbonButton(
                         action_key,
                         icon_text,
-                        self.i18n.t(action_key),
+                        self._theme_label() if action_key == "act.theme" else self.i18n.t(action_key),
                         self.dark,
                     )
                     button.clicked.connect(
@@ -356,6 +356,10 @@ class RibbonBar(QWidget):
     def set_document_title(self, title: str) -> None:
         if hasattr(self, "doc_label"):
             self.doc_label.setText(title)
+
+    def _theme_label(self) -> str:
+        """按钮显示“将切换到的主题”：浅色时显示深色主题，反之亦然。"""
+        return self.i18n.t("act.theme_light" if self.dark else "act.theme")
 
     def set_dark(self, dark: bool) -> None:
         self.dark = dark

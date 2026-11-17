@@ -72,6 +72,7 @@ STRINGS: dict[str, tuple[str, str]] = {
     "act.mode_wysiwyg": ("所见即所得", "WYSIWYG"),
     "act.outline": ("大纲", "Outline"),
     "act.theme": ("深色主题", "Dark Theme"),
+    "act.theme_light": ("浅色主题", "Light Theme"),
     "act.autosave": ("自动保存", "Auto Save"),
     "act.backup": ("备份版本", "Backup Version"),
     "act.lang": ("English", "中文"),
