@@ -4,7 +4,7 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.0.4** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用）
+版本：**1.0.6** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
 ---
 
@@ -75,6 +75,7 @@ ClaraMarkdownEditor/
 ├── .gitignore                 # Git 忽略规则
 ├── README.md                  # 英文版 README（主版本）
 ├── README.zh-CN.md            # 中文版 README（本文件）
+├── LICENSE                    # MIT 许可证
 ├── clara/                     # 应用包
 │   ├── __init__.py            # 应用名、组织名、版本号
 │   ├── backup.py              # 版本备份工具 + 命令行入口
@@ -235,6 +236,12 @@ Ribbon 上的“BKP”按钮调用同一函数。
 ---
 
 ## 8. 版本更新记录
+
+### 1.0.6 — MIT 许可证
+- 将自定义版权条款替换为标准 MIT 许可证，允许商业使用、修改与再分发。
+
+### 1.0.5 — 版权文件
+- 新增 `LICENSE`，包含中英文版权声明及个人/教育用途的使用条款。
 
 ### 1.0.4 — 启动模式
 - 启动时固定进入**分屏预览**模式，不再恢复上次使用的编辑模式。

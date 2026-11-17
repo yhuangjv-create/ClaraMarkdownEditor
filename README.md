@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.0.4** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
+Version: **1.0.6** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -75,6 +75,7 @@ ClaraMarkdownEditor/
 ├── .gitignore                 # Git ignore rules
 ├── README.md                  # English README (primary)
 ├── README.zh-CN.md            # Chinese README
+├── LICENSE                    # MIT License
 ├── clara/                     # Application package
 │   ├── __init__.py            # App name, organization, version
 │   ├── backup.py              # Versioned full-project backup + CLI
@@ -235,6 +236,12 @@ This is the same routine used by the “BKP” Ribbon button.
 ---
 
 ## 8. Version history
+
+### 1.0.6 — MIT License
+- Replaced the custom copyright terms with the standard MIT License, allowing commercial use, modification and redistribution.
+
+### 1.0.5 — Copyright file
+- Added `LICENSE` with English and Chinese copyright notices and the personal/educational use terms.
 
 ### 1.0.4 — Startup mode
 - The app now always starts in **Split Preview** mode instead of restoring the last-used mode.
