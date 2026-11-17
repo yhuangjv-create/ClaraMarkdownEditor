@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.3.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.3.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -246,6 +246,11 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.3.2 — Strikethrough fixed
+- `~~text~~` is now rendered as real strikethrough in split preview, PDF and PDF-preview HTML instead of showing literal tildes (a small Markdown inline extension, with fallback support).
+- Fixed a crash in the Home-tab strikethrough command in rich-text modes (`fontStrikeOut` was read from the wrong object), and toggling it off now works.
+- Selecting `~~text~~` in source mode and pressing the button unwraps it.
 
 ### 1.3.1 — Home-tab formatting works on the preview pane
 - Bold, italic, strikethrough, inline code, headings, lists, quotes and inserts now apply to the right pane in split mode when it was the last focused pane, instead of always modifying the source.

@@ -669,8 +669,13 @@ class MarkdownEditor(QWidget):
         target = self._rich_editor()
         if target is not None:
             fmt = QTextCharFormat()
-            fmt.setFontStrikeOut(not target.fontStrikeOut())
+            fmt.setFontStrikeOut(not target.currentCharFormat().fontStrikeOut())
             target.mergeCurrentCharFormat(fmt)
+            return
+        cursor = self.source.textCursor()
+        selected = cursor.selectedText()
+        if selected.startswith("~~") and selected.endswith("~~") and len(selected) > 4:
+            cursor.insertText(selected[2:-2])
             return
         self._wrap_source_selection("~~", "~~")
 

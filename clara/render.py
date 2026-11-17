@@ -11,14 +11,34 @@ from __future__ import annotations
 import re
 from html.parser import HTMLParser
 from typing import Iterable
+import xml.etree.ElementTree as etree
 
 try:  # markdown 为可选依赖，缺失时退回到内置简易解析器
     import markdown as _markdown
+    from markdown.extensions import Extension
+    from markdown.inlinepatterns import InlineProcessor
 
     HAS_MARKDOWN = True
 except Exception:  # pragma: no cover - 环境缺失依赖时
     _markdown = None
     HAS_MARKDOWN = False
+
+
+if HAS_MARKDOWN:
+
+    class _StrikeInline(InlineProcessor):
+        """GFM 删除线 ``~~text~~`` → ``<s>text</s>``。"""
+
+        def handleMatch(self, m, data):
+            el = etree.Element("s")
+            el.text = m.group(1)
+            return el, m.start(0), m.end(0)
+
+    class _StrikeExtension(Extension):
+        def extendMarkdown(self, md):
+            md.inlinePatterns.register(
+                _StrikeInline(r"~~(?=\S)(.+?)(?<=\S)~~", md), "strike", 175
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -34,6 +54,7 @@ def _fallback_markdown(text: str) -> str:
 
     def inline(s: str) -> str:
         s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
+        s = re.sub(r"~~([^~]+)~~", r"<s>\1</s>", s)
         s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
         s = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<em>\1</em>", s)
         s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', s)
@@ -149,7 +170,7 @@ def md_to_body_html(md_text: str) -> str:
     if HAS_MARKDOWN:
         return _markdown.markdown(
             md_text,
-            extensions=["extra", "sane_lists", "toc", "nl2br"],
+            extensions=["extra", "sane_lists", "toc", "nl2br", _StrikeExtension()],
             output_format="html5",
         )
     return _fallback_markdown(md_text)
