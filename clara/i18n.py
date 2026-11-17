@@ -117,6 +117,8 @@ STRINGS: dict[str, tuple[str, str]] = {
     "conv.no_file": ("未选择文件（将使用当前文档）", "No file selected (current doc will be used)"),
     "msg.no_recent": ("暂无最近文件", "No recent files"),
     "recent.remove": ("移除该记录", "Remove from recent"),
+    "recent.clear": ("清空所有记录", "Clear all recent"),
+    "recent.cleared": ("已清空最近文件", "Recent files cleared"),
     "recent.removed": ("已从最近文件移除：{name}", "Removed from recent files: {name}"),
     "conv.need_file": ("请先选择一个源文件。", "Please choose a source file first."),
     "conv.need_source": ("当前没有可转换的内容。", "There is nothing to convert."),

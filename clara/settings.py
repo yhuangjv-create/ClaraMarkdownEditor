@@ -93,6 +93,9 @@ class Settings:
     def remove_recent_file(self, path: str) -> None:
         self.set_value("files/recent", [p for p in self.recent_files() if p != path])
 
+    def clear_recent_files(self) -> None:
+        self.set_value("files/recent", [])
+
     @property
     def last_dir(self) -> str:
         return str(self.value("files/last_dir", ""))

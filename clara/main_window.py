@@ -629,7 +629,14 @@ class MainWindow(QMainWindow):
             action.setData(str(item))
             action.setToolTip(str(item))
             action.triggered.connect(lambda _=False, f=str(item): self.open_path(f))
+        menu.addSeparator()
+        clear = menu.addAction(self.i18n.t("recent.clear"))
+        clear.triggered.connect(self._clear_recent)
         return menu
+
+    def _clear_recent(self) -> None:
+        self.settings.clear_recent_files()
+        self.statusBar().showMessage(self.i18n.t("recent.cleared"), 2500)
 
     def _remove_recent(self, path: str) -> None:
         self.settings.remove_recent_file(path)
