@@ -6,6 +6,30 @@
 
 from __future__ import annotations
 
+from PySide6.QtCore import QLibraryInfo, QTranslator
+from PySide6.QtWidgets import QApplication
+
+_qt_translator: QTranslator | None = None
+
+
+def install_qt_translator(lang: str) -> None:
+    """加载 Qt 标准控件（右键菜单、对话框按钮等）的中文翻译。"""
+    global _qt_translator
+    app = QApplication.instance()
+    if app is None:
+        return
+    if _qt_translator is not None:
+        app.removeTranslator(_qt_translator)
+        _qt_translator = None
+    if lang != "zh":
+        return
+    translator = QTranslator(app)
+    path = QLibraryInfo.path(QLibraryInfo.TranslationsPath)
+    if translator.load("qtbase_zh_CN", path):
+        app.installTranslator(translator)
+        _qt_translator = translator
+
+
 LANG_ZH = "zh"
 LANG_EN = "en"
 

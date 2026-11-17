@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.1.6** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.1.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -241,6 +241,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.1.7 — Localized context menus
+- Loading Qt's `qtbase_zh_CN` translation makes the built-in right-click menus (undo, cut, copy, paste, select all) and standard dialog buttons follow the UI language; switching language updates them immediately.
 
 ### 1.1.6 — Hide recent files
 - Added a checkable “Don't show recent files” item to the Recent dropdown. When ticked, the list is replaced by a hint and the state is saved.

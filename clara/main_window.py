@@ -41,7 +41,7 @@ from .backup import create_backup
 from .convert_page import ConvertPage
 from .docx_io import export_md_to_docx, import_docx_to_md
 from .editor import MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG, MarkdownEditor
-from .i18n import I18n
+from .i18n import I18n, install_qt_translator
 from .outline import OutlinePanel
 from .pdf_io import export_md_to_pdf, import_pdf_to_md
 from .render import count_words
@@ -788,6 +788,7 @@ class MainWindow(QMainWindow):
     def _toggle_language(self) -> None:
         self.i18n.toggle()
         self.settings.language = self.i18n.lang
+        install_qt_translator(self.i18n.lang)
         self.ribbon.set_language(self.i18n)
         self.ribbon.set_document_title(
             f"{self._document_name()}{' *' if self.dirty else ''}"

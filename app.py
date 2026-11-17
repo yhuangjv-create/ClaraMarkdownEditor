@@ -24,6 +24,11 @@ def main() -> int:
     app.setOrganizationName(ORG_NAME)
     app.setApplicationVersion(__version__)
 
+    from clara.i18n import install_qt_translator
+    from clara.settings import Settings
+
+    install_qt_translator(Settings().language)
+
     # 延迟导入，确保 QApplication 先创建（部分 Qt 组件依赖它）
     from clara.main_window import MainWindow
 
