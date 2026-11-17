@@ -717,10 +717,38 @@ class MainWindow(QMainWindow):
         action.setCheckable(True)
         action.setChecked(self.settings.autosave_enabled)
         action.toggled.connect(self._set_autosave)
+        menu.addSeparator()
+        minutes = max(1, round(self.settings.autosave_interval / 60))
+        interval = menu.addAction(self.i18n.t("autosave.every_minutes", n=minutes))
+        interval.triggered.connect(self._request_autosave_interval)
         return menu
 
+    def _request_autosave_interval(self) -> None:
+        self._autosave_interval_requested = True
+
     def show_autosave_menu(self) -> None:
+        self._autosave_interval_requested = False
         self._exec_menu(self._autosave_menu(), "act.autosave")
+        if self._autosave_interval_requested:
+            self._edit_autosave_interval()
+
+    def _edit_autosave_interval(self) -> None:
+        current = max(1, round(self.settings.autosave_interval / 60))
+        minutes, ok = QInputDialog.getInt(
+            self,
+            self.i18n.t("act.autosave"),
+            self.i18n.t("autosave.interval_prompt"),
+            current,
+            1,
+            120,
+        )
+        if not ok:
+            return
+        self.settings.autosave_interval = minutes * 60
+        self._restart_autosave()
+        self.statusBar().showMessage(
+            self.i18n.t("autosave.interval_saved", n=minutes), 3000
+        )
 
     # ---------------- 导出 / 导入 ----------------
     def _export_target(self, suffix: str) -> Path | None:

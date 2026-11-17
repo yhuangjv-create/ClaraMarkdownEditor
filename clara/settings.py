@@ -72,9 +72,9 @@ class Settings:
     @property
     def autosave_interval(self) -> int:
         try:
-            return max(10, int(self.value("autosave/interval", 60)))
+            return max(10, int(self.value("autosave/interval", 120)))
         except (TypeError, ValueError):
-            return 60
+            return 120
 
     @autosave_interval.setter
     def autosave_interval(self, seconds: int) -> None:

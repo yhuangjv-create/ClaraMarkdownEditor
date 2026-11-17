@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.2.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.2.8** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -33,7 +33,7 @@ Requirements: Python 3.10+ (tested on 3.15), PySide6 6.6+.
 | Ribbon toolbar | File / Home / Insert / View / Convert tabs, collapsible, Fluent-inspired letter icons |
 | Document tabs | Every opened file gets a tab above the editor; click to switch, drag to reorder, `×` to close. Dirty documents show `*` |
 | Shortcuts | `Ctrl+N/O/S`, `Ctrl+Shift+S`, `Ctrl+B`, `Ctrl+I`, `Ctrl+K`, `Ctrl+F`, `Ctrl+Shift+M` (source), `Ctrl+Shift+P` (split), `Ctrl+Shift+W` (WYSIWYG), `Esc` closes search |
-| Auto-save | Draft written to `.autosave/draft.md` every N seconds (default 60) while dirty; recovery prompt on next start |
+| Auto-save | Draft written to `.autosave/draft.md` every N seconds (default 120, i.e. 2 minutes; configurable in Settings) while dirty; recovery prompt on next start |
 | Outline | Heading tree on the left; click to jump to the line |
 | Theme & language | Light/dark toggle and 中文/English toggle, both in the top-right Ribbon area, persisted via QSettings |
 | Drag & drop | Drop `.md`, `.docx`, `.pdf` onto the window to open or import |
@@ -245,6 +245,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.2.8 — Custom autosave interval
+- The Auto Save drop-down now shows a “Every N minutes” item (default 2 minutes).
+- Clicking it opens a dialog where the interval can be set from 1 to 120 minutes; the new value takes effect immediately.
 
 ### 1.2.7 — Autosave becomes a checkable drop-down
 - In **Settings**, the **Auto Save** button now opens a drop-down with a checkable “Auto Save” item.
