@@ -113,7 +113,6 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
                 "group.tools",
                 [
                     ("act.outline", "="),
-                    ("act.theme", "O"),
                     ("act.autosave", "AS"),
                     ("act.about", "i"),
                 ],
