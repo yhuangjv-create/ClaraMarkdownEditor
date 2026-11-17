@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
     QTabBar,
     QVBoxLayout,
     QWidget,
+    QWidgetAction,
 )
 
 from . import APP_NAME, __version__
@@ -718,32 +719,32 @@ class MainWindow(QMainWindow):
         action.setChecked(self.settings.autosave_enabled)
         action.toggled.connect(self._set_autosave)
         menu.addSeparator()
-        minutes = max(1, round(self.settings.autosave_interval / 60))
-        interval = menu.addAction(self.i18n.t("autosave.every_minutes", n=minutes))
-        interval.triggered.connect(self._request_autosave_interval)
+
+        # 「每 [n] 分钟自动保存」：数字可在菜单内直接输入，无需弹窗
+        row = QWidget(menu)
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(18, 4, 18, 4)
+        layout.setSpacing(4)
+        prefix = QLabel(self.i18n.t("autosave.every_prefix"), row)
+        spin = QSpinBox(row)
+        spin.setRange(1, 120)
+        spin.setValue(max(1, round(self.settings.autosave_interval / 60)))
+        spin.setFixedWidth(64)
+        suffix = QLabel(self.i18n.t("autosave.every_suffix"), row)
+        layout.addWidget(prefix)
+        layout.addWidget(spin)
+        layout.addWidget(suffix)
+        spin.valueChanged.connect(self._set_autosave_minutes)
+
+        widget_action = QWidgetAction(menu)
+        widget_action.setDefaultWidget(row)
+        menu.addAction(widget_action)
         return menu
 
-    def _request_autosave_interval(self) -> None:
-        self._autosave_interval_requested = True
-
     def show_autosave_menu(self) -> None:
-        self._autosave_interval_requested = False
         self._exec_menu(self._autosave_menu(), "act.autosave")
-        if self._autosave_interval_requested:
-            self._edit_autosave_interval()
 
-    def _edit_autosave_interval(self) -> None:
-        current = max(1, round(self.settings.autosave_interval / 60))
-        minutes, ok = QInputDialog.getInt(
-            self,
-            self.i18n.t("act.autosave"),
-            self.i18n.t("autosave.interval_prompt"),
-            current,
-            1,
-            120,
-        )
-        if not ok:
-            return
+    def _set_autosave_minutes(self, minutes: int) -> None:
         self.settings.autosave_interval = minutes * 60
         self._restart_autosave()
         self.statusBar().showMessage(
