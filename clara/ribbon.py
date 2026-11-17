@@ -48,12 +48,6 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
                     ("act.import_pdf", "P<"),
                 ],
             ),
-            (
-                "group.tools",
-                [
-                    ("act.exit", "X"),
-                ],
-            ),
         ],
     ),
     (

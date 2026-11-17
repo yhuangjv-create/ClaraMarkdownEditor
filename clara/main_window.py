@@ -263,7 +263,6 @@ class MainWindow(QMainWindow):
             "act.save": self.save_document,
             "act.save_as": self.save_document_as,
             "act.recent": self.show_recent,
-            "act.exit": self.close,
             "act.export_word": self.export_word,
             "act.export_pdf": self.export_pdf,
             "act.import_word": self.import_word,

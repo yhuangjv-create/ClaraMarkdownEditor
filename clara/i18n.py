@@ -62,7 +62,6 @@ STRINGS: dict[str, tuple[str, str]] = {
     "act.save": ("保存", "Save"),
     "act.save_as": ("另存为", "Save As"),
     "act.recent": ("最近文件", "Recent"),
-    "act.exit": ("退出", "Exit"),
     "act.export_word": ("导出 Word", "Export Word"),
     "act.export_pdf": ("导出 PDF", "Export PDF"),
     "act.import_word": ("导入 Word", "Import Word"),

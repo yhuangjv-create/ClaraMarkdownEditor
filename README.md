@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.2.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.2.3** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -245,6 +245,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.2.3 — Exit button removed from the Ribbon
+- The “Exit” button and its now-empty Tools group were removed from the File tab; close the window to quit.
 
 ### 1.2.2 — Recent moved next to Open
 - The “Recent files” button now sits directly to the right of “Open” in the File tab, and the separate Tools slot only keeps “Exit”.
