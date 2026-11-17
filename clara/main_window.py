@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QSplitter,
     QStackedWidget,
     QStatusBar,
+    QTabBar,
     QVBoxLayout,
     QWidget,
 )
@@ -69,6 +70,8 @@ class MainWindow(QMainWindow):
         self.dark = self.settings.dark_mode
         self.current_file: Path | None = None
         self.dirty = False
+        self._docs: list[dict] = []
+        self._active = -1
 
         self.resize(1280, 820)
         self.setMinimumSize(960, 640)
@@ -98,9 +101,21 @@ class MainWindow(QMainWindow):
 
         # 编辑页
         self.editor_page = QWidget()
-        page_layout = QHBoxLayout(self.editor_page)
+        page_layout = QVBoxLayout(self.editor_page)
         page_layout.setContentsMargins(0, 0, 0, 0)
         page_layout.setSpacing(0)
+
+        self.doc_tabs = QTabBar()
+        self.doc_tabs.setObjectName("DocTabs")
+        self.doc_tabs.setExpanding(False)
+        self.doc_tabs.setMovable(True)
+        self.doc_tabs.setTabsClosable(True)
+        self.doc_tabs.setElideMode(Qt.ElideMiddle)
+        self.doc_tabs.setUsesScrollButtons(True)
+        self.doc_tabs.currentChanged.connect(self._on_tab_changed)
+        self.doc_tabs.tabCloseRequested.connect(self._close_tab)
+        self.doc_tabs.tabMoved.connect(self._on_tab_moved)
+        page_layout.addWidget(self.doc_tabs)
 
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.setChildrenCollapsible(False)
@@ -120,7 +135,7 @@ class MainWindow(QMainWindow):
         self.main_splitter.setStretchFactor(0, 0)
         self.main_splitter.setStretchFactor(1, 1)
         self.main_splitter.setSizes([200, 1080])
-        page_layout.addWidget(self.main_splitter)
+        page_layout.addWidget(self.main_splitter, 1)
 
         # 转换页
         self.convert_page = ConvertPage(self.i18n, self.dark)
@@ -148,6 +163,9 @@ class MainWindow(QMainWindow):
         # 初始页面固定为分屏预览
         self.editor.set_mode(MODE_SPLIT, emit=False)
         self.settings.editor_mode = MODE_SPLIT
+
+        # 初始文档标签
+        self._add_document(None, "")
 
     # ------------------------------------------------------------------
     # 定时器：自动保存 / 字数统计 / 大纲刷新
@@ -298,6 +316,126 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"{self.i18n.t('act.autosave')}: {state}", 3000)
 
     # ------------------------------------------------------------------
+    # 文档标签页
+    # ------------------------------------------------------------------
+    def _doc_label(self, doc: dict) -> str:
+        name = doc["path"].name if doc["path"] else self.i18n.t("common.untitled")
+        return f"{name}{' *' if doc['dirty'] else ''}"
+
+    def _update_active_tab(self) -> None:
+        if not 0 <= self._active < len(self._docs):
+            return
+        doc = self._docs[self._active]
+        self.doc_tabs.setTabText(self._active, self._doc_label(doc))
+        self.doc_tabs.setTabToolTip(
+            self._active, str(doc["path"]) if doc["path"] else self.i18n.t("common.untitled")
+        )
+
+    def _retranslate_tabs(self) -> None:
+        for index, doc in enumerate(self._docs):
+            self.doc_tabs.setTabText(index, self._doc_label(doc))
+            self.doc_tabs.setTabToolTip(
+                index, str(doc["path"]) if doc["path"] else self.i18n.t("common.untitled")
+            )
+
+    def _store_active(self) -> None:
+        if 0 <= self._active < len(self._docs):
+            doc = self._docs[self._active]
+            doc["text"] = self.editor.get_markdown()
+            doc["dirty"] = self.dirty
+            doc["path"] = self.current_file
+
+    def _add_document(self, path: str | Path | None, text: str, dirty: bool = False) -> int:
+        self._store_active()
+        doc = {"path": Path(path) if path else None, "text": text, "dirty": dirty}
+        self._docs.append(doc)
+        index = len(self._docs) - 1
+        self.doc_tabs.blockSignals(True)
+        self.doc_tabs.addTab(self._doc_label(doc))
+        self.doc_tabs.setTabToolTip(
+            index, str(doc["path"]) if doc["path"] else self.i18n.t("common.untitled")
+        )
+        self.doc_tabs.setCurrentIndex(index)
+        self.doc_tabs.blockSignals(False)
+        self._active = -1
+        self._activate_document(index)
+        return index
+
+    def _activate_document(self, index: int) -> None:
+        if not 0 <= index < len(self._docs) or index == self._active:
+            return
+        self._store_active()
+        self._active = index
+        doc = self._docs[index]
+        self.current_file = doc["path"]
+        self.dirty = doc["dirty"]
+        self.editor.set_markdown(doc["text"])
+        self.doc_tabs.blockSignals(True)
+        self.doc_tabs.setCurrentIndex(index)
+        self.doc_tabs.blockSignals(False)
+        self._update_titles()
+
+    def _on_tab_changed(self, index: int) -> None:
+        if index >= 0:
+            self._activate_document(index)
+
+    def _on_tab_moved(self, from_index: int, to_index: int) -> None:
+        if not (0 <= from_index < len(self._docs) and 0 <= to_index < len(self._docs)):
+            return
+        doc = self._docs.pop(from_index)
+        self._docs.insert(to_index, doc)
+        if self._active == from_index:
+            self._active = to_index
+        elif from_index < self._active <= to_index:
+            self._active -= 1
+        elif to_index <= self._active < from_index:
+            self._active += 1
+
+    def _close_tab(self, index: int) -> None:
+        if not 0 <= index < len(self._docs):
+            return
+        if index != self._active:
+            self._activate_document(index)
+        if not self._maybe_save():
+            return
+        if self.dirty:
+            self._clear_draft()
+        self._remove_document(index)
+
+    def _remove_document(self, index: int) -> None:
+        if not 0 <= index < len(self._docs):
+            return
+        self._docs.pop(index)
+        self.doc_tabs.blockSignals(True)
+        self.doc_tabs.removeTab(index)
+        self.doc_tabs.blockSignals(False)
+        self._active = -1
+        if self._docs:
+            self._activate_document(min(index, len(self._docs) - 1))
+        else:
+            self._add_document(None, "")
+
+    def _is_blank_untitled(self) -> bool:
+        return (
+            self.current_file is None
+            and not self.dirty
+            and not self.editor.get_markdown().strip()
+        )
+
+    def _load_into_active(self, path: str | Path | None, text: str, dirty: bool = False) -> None:
+        doc = self._docs[self._active]
+        doc["path"] = Path(path) if path else None
+        doc["text"] = text
+        doc["dirty"] = dirty
+        self.current_file = doc["path"]
+        self.dirty = dirty
+        self.editor.set_markdown(text)
+        self._update_active_tab()
+        self._update_titles()
+        self._refresh_outline()
+        self._update_status()
+
+    # ------------------------------------------------------------------
     # 文件操作
     # ------------------------------------------------------------------
     def _document_name(self) -> str:
@@ -310,9 +448,14 @@ class MainWindow(QMainWindow):
         if hasattr(self.ribbon, "set_document_title"):
             self.ribbon.set_document_title(f"{name}{mark}")
         self.status_file.setText(str(self.current_file) if self.current_file else self.i18n.t("common.untitled"))
+        self._update_active_tab()
 
     def _set_dirty(self, dirty: bool) -> None:
+        if 0 <= self._active < len(self._docs):
+            self._docs[self._active]["dirty"] = dirty
+            self._docs[self._active]["path"] = self.current_file
         if self.dirty == dirty:
+            self._update_active_tab()
             return
         self.dirty = dirty
         self._update_titles()
@@ -367,19 +510,12 @@ class MainWindow(QMainWindow):
         return True
 
     def new_document(self) -> None:
-        if not self._maybe_save():
-            return
-        self.editor.clear()
-        self.current_file = None
-        self._set_dirty(False)
-        self._update_titles()
-        self._refresh_outline()
-        self._update_status()
         self.pages.setCurrentIndex(0)
+        if self._is_blank_untitled():
+            return
+        self._add_document(None, "")
 
     def open_dialog(self) -> None:
-        if not self._maybe_save():
-            return
         start_dir = self.settings.last_dir or ""
         path, _ = QFileDialog.getOpenFileName(
             self,
@@ -391,7 +527,7 @@ class MainWindow(QMainWindow):
             self.open_path(path)
 
     def open_path(self, path: str | Path) -> None:
-        file = Path(path)
+        file = Path(path).resolve()
         try:
             text = file.read_text(encoding="utf-8")
         except UnicodeDecodeError:
@@ -400,24 +536,36 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, self.i18n.t("common.error"), self.i18n.t("msg.open_failed", err=exc))
             return
 
-        self.editor.set_markdown(text)
-        self.current_file = file
-        self._set_dirty(False)
+        self.pages.setCurrentIndex(0)
+        for index, doc in enumerate(self._docs):
+            if doc["path"] is not None and doc["path"] == file:
+                self._activate_document(index)
+                break
+        else:
+            if self._is_blank_untitled():
+                self._load_into_active(file, text)
+            else:
+                self._add_document(file, text)
+        if self._active >= 0:
+            self._store_active()
         self.settings.last_dir = str(file.parent)
         self.settings.add_recent_file(str(file))
         self._update_titles()
         self._refresh_outline()
         self._update_status()
-        self.pages.setCurrentIndex(0)
 
     def save_document(self) -> bool:
         if self.current_file is None:
             return self.save_document_as()
+        text = self.editor.get_markdown()
         try:
-            self.current_file.write_text(self.editor.get_markdown(), encoding="utf-8")
+            self.current_file.write_text(text, encoding="utf-8")
         except Exception as exc:
             QMessageBox.critical(self, self.i18n.t("common.error"), self.i18n.t("msg.save_failed", err=exc))
             return False
+        if 0 <= self._active < len(self._docs):
+            self._docs[self._active]["path"] = self.current_file
+            self._docs[self._active]["text"] = text
         self._set_dirty(False)
         self.settings.last_dir = str(self.current_file.parent)
         self.settings.add_recent_file(str(self.current_file))
@@ -427,7 +575,7 @@ class MainWindow(QMainWindow):
 
     def save_document_as(self) -> bool:
         start = str(self.current_file) if self.current_file else str(
-            Path(self.settings.last_dir or Path.cwd()) / "未命名.md"
+            Path(self.settings.last_dir or Path.cwd()) / self.i18n.t("common.untitled")
         )
         path, _ = QFileDialog.getSaveFileName(
             self, self.i18n.t("act.save_as"), start, self.i18n.t("filter.md")
@@ -512,8 +660,6 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        if not self._maybe_save():
-            return
         try:
             assets = Path(path).parent / "assets"
             text = import_docx_to_md(path, assets)
@@ -528,8 +674,6 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        if not self._maybe_save():
-            return
         try:
             text = import_pdf_to_md(path)
         except Exception as exc:
@@ -538,13 +682,11 @@ class MainWindow(QMainWindow):
         self._load_imported(text)
 
     def _load_imported(self, text: str) -> None:
-        self.editor.set_markdown(text)
-        self.current_file = None
-        self._set_dirty(True)
-        self._update_titles()
-        self._refresh_outline()
-        self._update_status()
         self.pages.setCurrentIndex(0)
+        if self._is_blank_untitled():
+            self._load_into_active(None, text, dirty=True)
+        else:
+            self._add_document(None, text, dirty=True)
 
     def insert_image(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
@@ -565,6 +707,7 @@ class MainWindow(QMainWindow):
         )
         self.outline.retranslate(self.i18n)
         self.editor.retranslate(self.i18n)
+        self._retranslate_tabs()
         self.convert_page.i18n = self.i18n
         self.convert_page.retranslate()
         self._update_titles()
@@ -643,12 +786,7 @@ class MainWindow(QMainWindow):
                 original = meta.get("path", "")
             except Exception:
                 pass
-            self.editor.set_markdown(text)
-            self.current_file = Path(original) if original else None
-            self._set_dirty(True)
-            self._update_titles()
-            self._refresh_outline()
-            self._update_status()
+            self._load_into_active(Path(original) if original else None, text, dirty=True)
         else:
             self._clear_draft()
 
@@ -714,8 +852,7 @@ class MainWindow(QMainWindow):
             file = Path(path)
             suffix = file.suffix.lower()
             if suffix in (".md", ".markdown"):
-                if self._maybe_save():
-                    self.open_path(file)
+                self.open_path(file)
                 return
             if suffix == ".docx":
                 self.pages.setCurrentIndex(1)
@@ -729,10 +866,17 @@ class MainWindow(QMainWindow):
                 return
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if not self._maybe_save():
-            event.ignore()
-            return
-        self._write_draft_if_needed()
+        self._store_active()
+        for index in range(len(self._docs)):
+            if self._docs[index]["dirty"]:
+                self._activate_document(index)
+                if not self._maybe_save():
+                    event.ignore()
+                    return
+        if self.dirty:
+            self._clear_draft()
+        else:
+            self._write_draft_if_needed()
         event.accept()
 
     def _write_draft_if_needed(self) -> None:

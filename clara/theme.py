@@ -277,4 +277,28 @@ def build_stylesheet(dark: bool = False) -> str:
         background: {c['panel']};
         border-top: 1px solid {c['border']};
     }}
+    QTabBar#DocTabs {{
+        background: {c['win']};
+        border-bottom: 1px solid {c['border']};
+    }}
+    QTabBar#DocTabs::tab {{
+        background: transparent;
+        color: {c['subtext']};
+        border: 1px solid transparent;
+        border-bottom: none;
+        padding: 5px 10px;
+        margin: 4px 1px 0 1px;
+        min-width: 72px;
+    }}
+    QTabBar#DocTabs::tab:hover:!selected {{
+        background: {c['ribbon_hover']};
+        color: {c['text']};
+    }}
+    QTabBar#DocTabs::tab:selected {{
+        background: {c['panel']};
+        color: {c['text']};
+        border: 1px solid {c['border']};
+        border-bottom: none;
+        border-top: 2px solid {c['accent']};
+    }}
     """

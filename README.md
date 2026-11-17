@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.0.9** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.1.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -31,6 +31,7 @@ Requirements: Python 3.10+ (tested on 3.15), PySide6 6.6+.
 | Split mode | Source on the left, live rendered preview on the right, proportional scroll sync |
 | WYSIWYG mode | Word-like rich text; Markdown syntax is hidden. Bold/italic/strikethrough/inline code, headings, lists, quotes, code blocks and tables survive the round-trip back to Markdown |
 | Ribbon toolbar | File / Home / Insert / View / Convert tabs, collapsible, Fluent-inspired letter icons |
+| Document tabs | Every opened file gets a tab above the editor; click to switch, drag to reorder, `×` to close. Dirty documents show `*` |
 | Shortcuts | `Ctrl+N/O/S`, `Ctrl+Shift+S`, `Ctrl+B`, `Ctrl+I`, `Ctrl+K`, `Ctrl+F`, `Ctrl+Shift+M` (source), `Ctrl+Shift+P` (split), `Ctrl+Shift+W` (WYSIWYG), `Esc` closes search |
 | Auto-save | Draft written to `.autosave/draft.md` every N seconds (default 60) while dirty; recovery prompt on next start |
 | Outline | Heading tree on the left; click to jump to the line |
@@ -42,6 +43,7 @@ Requirements: Python 3.10+ (tested on 3.15), PySide6 6.6+.
 - WYSIWYG nested list levels may flatten; tables inserted while in WYSIWYG remain literal Markdown text until you switch to source mode.
 - Rendering in split preview uses Qt's HTML/CSS subset, so very exotic Markdown extensions may look simpler than on GitHub.
 - PDF export produces a text-based PDF; fonts depend on what is installed on the system.
+- Switching between document tabs reloads the document text, so the undo history restarts for that tab.
 
 ### 2.2 Conversion center
 
@@ -61,7 +63,7 @@ The conversion page also provides:
 
 ### 2.3 File management
 
-New, open, save, save-as, recent files (max 10), export Word/PDF, import Word/PDF, and drag-and-drop opening.
+New, open, save, save-as, recent files (max 10), export Word/PDF, import Word/PDF, and drag-and-drop opening. Multiple documents stay open as tabs; closing a dirty tab asks whether to save it.
 
 ---
 
@@ -237,6 +239,11 @@ This is the same routine used by the “BKP” Ribbon button.
 ---
 
 ## 8. Version history
+
+Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.1.0 — Document tabs
+- Opening or creating documents now adds a tab above the editor; tabs can be clicked to switch, dragged to reorder and closed with `×`. Unsaved documents show `*`, and closing a dirty tab or the app asks to save each one.
 
 ### 1.0.9 — Developer backup moved
 - Removed the developer-only “Backup Version” button from both the File and View ribbon tabs; it is now a “Create developer backup” button inside the About dialog. The `python -m clara.backup` CLI still works.
