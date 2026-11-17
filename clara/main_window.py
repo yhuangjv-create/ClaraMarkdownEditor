@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QCloseEvent, QCursor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
+    QDialog,
     QFileDialog,
     QHBoxLayout,
     QInputDialog,
@@ -23,9 +24,11 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMenu,
     QMessageBox,
+    QPushButton,
     QSplitter,
     QStackedWidget,
     QStatusBar,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -667,8 +670,30 @@ class MainWindow(QMainWindow):
             self, self.i18n.t("common.info"), self.i18n.t("msg.backup_done", path=str(target))
         )
 
+    def _build_about_dialog(self) -> QDialog:
+        dialog = QDialog(self)
+        dialog.setWindowTitle(self.i18n.t("act.about"))
+        dialog.setMinimumWidth(420)
+        layout = QVBoxLayout(dialog)
+        text = QLabel(self.i18n.t("msg.about_text", ver=__version__))
+        text.setWordWrap(True)
+        text.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        layout.addWidget(text)
+
+        row = QHBoxLayout()
+        backup_button = QPushButton(self.i18n.t("about.backup"))
+        backup_button.clicked.connect(self.backup_version)
+        close_button = QPushButton(self.i18n.t("common.close"))
+        close_button.setDefault(True)
+        close_button.clicked.connect(dialog.accept)
+        row.addWidget(backup_button)
+        row.addStretch(1)
+        row.addWidget(close_button)
+        layout.addLayout(row)
+        return dialog
+
     def show_about(self) -> None:
-        QMessageBox.about(self, self.i18n.t("act.about"), self.i18n.t("msg.about_text", ver=__version__))
+        self._build_about_dialog().exec()
 
     # ------------------------------------------------------------------
     # 拖拽打开

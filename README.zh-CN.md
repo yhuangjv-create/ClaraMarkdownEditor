@@ -4,7 +4,7 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.0.8** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
+版本：**1.0.9** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
 ---
 
@@ -237,6 +237,9 @@ Ribbon 上的“BKP”按钮调用同一函数。
 ---
 
 ## 8. 版本更新记录
+
+### 1.0.9 — 开发备份移入关于对话框
+- 从「文件」和「视图」两个 Ribbon 选项卡中移除开发用途的「备份版本」按钮，改为「关于」对话框内的「创建开发备份」按钮；`python -m clara.backup` 命令行仍然可用。
 
 ### 1.0.8 — 换行符配置
 - 新增 `.gitattributes`（`* text=auto eol=lf`，`.bat` 用 CRLF），Git 统一以 LF 存储文本，首次 `git add` 不再出现“LF will be replaced by CRLF”警告。

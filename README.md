@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.0.8** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.0.9** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -237,6 +237,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ---
 
 ## 8. Version history
+
+### 1.0.9 — Developer backup moved
+- Removed the developer-only “Backup Version” button from both the File and View ribbon tabs; it is now a “Create developer backup” button inside the About dialog. The `python -m clara.backup` CLI still works.
 
 ### 1.0.8 — Line-ending configuration
 - Added `.gitattributes` (`* text=auto eol=lf`, `.bat` CRLF) so Git stores text as LF and no longer prints “LF will be replaced by CRLF” warnings on the first `git add`.
