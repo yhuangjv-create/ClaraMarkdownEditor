@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtWidgets import QMessageBox, QWidget
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QWidget
+
+_FILTER_KEYS = {".docx": "filter.docx", ".pdf": "filter.pdf", ".md": "filter.md"}
 
 
 def unique_path(path: Path) -> Path:
@@ -36,5 +38,14 @@ def resolve_overwrite(parent: QWidget, i18n, path: Path) -> Path | None:
     if clicked is overwrite:
         return path
     if clicked is renumber:
-        return unique_path(path)
+        filters = i18n.t(_FILTER_KEYS.get(path.suffix.lower(), "filter.all"))
+        chosen, _ = QFileDialog.getSaveFileName(
+            parent, i18n.t("act.save_as"), str(unique_path(path)), filters
+        )
+        if not chosen:
+            return None
+        chosen_path = Path(chosen)
+        if not chosen_path.suffix:
+            chosen_path = chosen_path.with_suffix(path.suffix)
+        return chosen_path
     return None
