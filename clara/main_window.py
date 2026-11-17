@@ -609,13 +609,20 @@ class MainWindow(QMainWindow):
             Path(self.settings.last_dir or Path.cwd()) / self.i18n.t("common.untitled")
         )
         path, _ = QFileDialog.getSaveFileName(
-            self, self.i18n.t("act.save_as"), start, self.i18n.t("filter.md")
+            self,
+            self.i18n.t("act.save_as"),
+            start,
+            self.i18n.t("filter.md"),
+            options=QFileDialog.DontConfirmOverwrite,
         )
         if not path:
             return False
         if not path.lower().endswith((".md", ".markdown")):
             path += ".md"
-        self.current_file = Path(path)
+        target = resolve_overwrite(self, self.i18n, Path(path))
+        if target is None:
+            return False
+        self.current_file = target
         return self.save_document()
 
     def _recent_menu(self) -> RecentMenu:

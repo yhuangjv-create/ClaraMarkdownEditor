@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.1.9** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.2.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -63,7 +63,7 @@ The conversion page also provides:
 
 ### 2.3 File management
 
-New, open, save, save-as, recent files (1–50, configurable), export Word/PDF, import Word/PDF, and drag-and-drop opening. If the export target already exists, a prompt offers **Overwrite**, **Save as…** (a `name (1).docx` path is pre-filled in the save dialog) or **Cancel** instead of silently replacing the file. Multiple documents stay open as tabs; closing a dirty tab asks whether to save it. In the Recent list, right-click an entry and choose “Remove from recent” to drop it, or use “Clear all recent” at the bottom to empty the list. “Settings” in the same menu sets how many entries are shown (1–50) and an optional time window in days (0 = no limit). Tick “Don't show recent files” to hide the whole list; the choice is remembered.
+New, open, save, save-as, recent files (1–50, configurable), export Word/PDF, import Word/PDF, and drag-and-drop opening. If the export target already exists, a prompt offers **Overwrite**, **Save as…** (a `name (1).docx` path is pre-filled in the save dialog) or **Cancel** instead of silently replacing the file; Save As on the main window behaves the same way. Multiple documents stay open as tabs; closing a dirty tab asks whether to save it. In the Recent list, right-click an entry and choose “Remove from recent” to drop it, or use “Clear all recent” at the bottom to empty the list. “Settings” in the same menu sets how many entries are shown (1–50) and an optional time window in days (0 = no limit). Tick “Don't show recent files” to hide the whole list; the choice is remembered.
 
 ---
 
@@ -245,6 +245,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.2.0 — Consistent Save As behaviour
+- “Save As” for Markdown files now uses the same conflict prompt as Word/PDF export: Overwrite, Save as… (numbered name pre-filled) or Cancel, instead of silently replacing an existing file.
 
 ### 1.1.9 — “Save as…” conflict option
 - The conflict prompt’s middle button is now “Save as…”: it opens a save dialog prefilled with `name (1).ext`, so the user can confirm the suggested name, edit it, or cancel. Overwrite and Cancel are unchanged.
