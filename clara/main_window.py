@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
             "act.mode_wysiwyg": lambda: self._set_mode(MODE_WYSIWYG),
             "act.outline": self._toggle_outline,
             "act.theme": self._toggle_theme,
-            "act.autosave": self._toggle_autosave,
+            "act.autosave": self.show_autosave_menu,
             "act.backup": self.backup_version,
             "act.about": self.show_about,
             "act.convert_center": lambda: self._show_convert("md2docx"),
@@ -338,8 +338,7 @@ class MainWindow(QMainWindow):
         self.outline.setVisible(visible)
         self.settings.outline_visible = visible
 
-    def _toggle_autosave(self) -> None:
-        enabled = not self.settings.autosave_enabled
+    def _set_autosave(self, enabled: bool) -> None:
         self.settings.autosave_enabled = enabled
         self._restart_autosave()
         state = self.i18n.t("common.yes") if enabled else self.i18n.t("common.no")
@@ -696,18 +695,32 @@ class MainWindow(QMainWindow):
             self.i18n.t("recent.removed", name=Path(path).name), 2500
         )
 
-    def show_recent(self) -> None:
-        menu = self._recent_menu()
-        button = self.ribbon.button_for("act.recent")
-        if button is not None:
-            menu.exec(button.mapToGlobal(button.rect().bottomLeft()))
-            # 菜单为模态，关闭后按钮收不到 leave 事件，需手动清除悬停/按下状态
-            button.setDown(False)
-            button.clearFocus()
-            QApplication.sendEvent(button, QEvent(QEvent.Leave))
-            button.update()
-        else:
+    def _exec_menu(self, menu: QMenu, action_key: str) -> None:
+        """在 Ribbon 按钮下方弹出菜单，并在关闭后清除按钮残留状态。"""
+        button = self.ribbon.button_for(action_key)
+        if button is None:
             menu.exec(QCursor.pos())
+            return
+        menu.exec(button.mapToGlobal(button.rect().bottomLeft()))
+        # 菜单为模态，关闭后按钮收不到 leave 事件，需手动清除悬停/按下状态
+        button.setDown(False)
+        button.clearFocus()
+        QApplication.sendEvent(button, QEvent(QEvent.Leave))
+        button.update()
+
+    def show_recent(self) -> None:
+        self._exec_menu(self._recent_menu(), "act.recent")
+
+    def _autosave_menu(self) -> QMenu:
+        menu = QMenu(self)
+        action = menu.addAction(self.i18n.t("act.autosave"))
+        action.setCheckable(True)
+        action.setChecked(self.settings.autosave_enabled)
+        action.toggled.connect(self._set_autosave)
+        return menu
+
+    def show_autosave_menu(self) -> None:
+        self._exec_menu(self._autosave_menu(), "act.autosave")
 
     # ---------------- 导出 / 导入 ----------------
     def _export_target(self, suffix: str) -> Path | None:

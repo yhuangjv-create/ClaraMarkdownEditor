@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.2.6** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.2.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -245,6 +245,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.2.7 — Autosave becomes a checkable drop-down
+- In **Settings**, the **Auto Save** button now opens a drop-down with a checkable “Auto Save” item.
+- Ticking or unticking it starts or stops the autosave timer immediately, and the choice is remembered.
 
 ### 1.2.6 — “View” tab renamed to “Settings”
 - The fourth Ribbon tab is now “Settings” / “设置”; its Tools group (outline, autosave, about) is unchanged.
