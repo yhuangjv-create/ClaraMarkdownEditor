@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.0.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
+Version: **1.0.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: personal/educational use
 
 ---
 
@@ -235,6 +235,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ---
 
 ## 8. Version history
+
+### 1.0.2 — Consistent line spacing
+- Split the preview/WYSIWYG stylesheet into a shared layout part plus color-only overrides, so light and dark themes now use identical paragraph, heading, list and code-block spacing.
+- Fixed: dark-theme WYSIWYG content had visibly larger line spacing than the light theme.
 
 ### 1.0.1 — Drag-and-drop fix
 - Fixed: dropping a file anywhere inside the editor (source, split preview or WYSIWYG) now opens it instead of inserting a `file:///...` text line.
