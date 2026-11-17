@@ -4,7 +4,7 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.1.7** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
+版本：**1.1.8** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
 ---
 
@@ -63,7 +63,7 @@ python app.py
 
 ### 2.3 文件管理
 
-新建、打开、保存、另存为、最近文件（1–50 条，可设置）、导出 Word/PDF、导入 Word/PDF、拖拽打开；多个文档以标签页同时保持打开，关闭未保存的标签会询问是否保存。最近文件下拉列表中，在条目上点右键选「移除该记录」即可删除该条；列表底部有「清空所有记录」，可一次清除全部记录；「设置」中可自定义显示条数（1–50），还可只显示最近 N 天内打开的文件（0 表示不限，天数没有上限），修改后立即生效；勾选「不显示最近文件」可隐藏整个列表，状态会被记住。
+新建、打开、保存、另存为、最近文件（1–50 条，可设置）、导出 Word/PDF、导入 Word/PDF、拖拽打开；导出 Word/PDF（以及转换中心执行转换）时若目标文件已存在，会弹窗提供「覆盖」「自动编号」「取消」三种选择，自动编号会生成 `文件名 (1).docx`、`文件名 (2).docx` 等，不再静默覆盖。多个文档以标签页同时保持打开，关闭未保存的标签会询问是否保存。最近文件下拉列表中，在条目上点右键选「移除该记录」即可删除该条；列表底部有「清空所有记录」，可一次清除全部记录；「设置」中可自定义显示条数（1–50），还可只显示最近 N 天内打开的文件（0 表示不限，天数没有上限），修改后立即生效；勾选「不显示最近文件」可隐藏整个列表，状态会被记住。
 
 ---
 
@@ -86,6 +86,7 @@ ClaraMarkdownEditor/
 │   ├── convert_page.py        # 转换中心界面 + 差异色带
 │   ├── docx_io.py             # Markdown ⇄ DOCX（python-docx）
 │   ├── editor.py              # 源码编辑器、查找栏、分屏/所见即所得编辑器
+│   ├── fileutils.py           # 导出冲突处理（覆盖 / 自动编号 / 取消）
 │   ├── i18n.py                # 中英文字符串表与 I18n 辅助类
 │   ├── icons.py               # 自绘字母图标
 │   ├── main_window.py         # 主窗口、动作分发、自动保存、文件读写
@@ -141,13 +142,16 @@ app.py
 先创建 `QApplication`（部分 Qt 组件依赖），设置 HiDPI 取整策略、应用名与版本，再延迟导入 `MainWindow`，避免过早导入 Qt 控件。`main()` 返回事件循环退出码。
 
 ### `clara/__init__.py`
-导出三个全局常量：`APP_NAME`、`ORG_NAME`（QSettings 命名空间）、`__version__ = "1.0.0"`。
+导出三个全局常量：`APP_NAME`、`ORG_NAME`（QSettings 命名空间）、`__version__`。
 
 ### `clara/settings.py`
-`Settings` 封装 `QSettings(ORG_NAME, APP_NAME)`。属性包括 `language`、`dark_mode`、`editor_mode`、`outline_visible`、`autosave_enabled`、`autosave_interval`，以及 `recent_files()`、`add_recent_file(limit=10)`、`last_dir`。布尔值以 `"true"/"false"` 字符串存储，兼容注册表。
+`Settings` 封装 `QSettings(ORG_NAME, APP_NAME)`。属性包括 `language`、`dark_mode`、`editor_mode`、`outline_visible`、`autosave_enabled`、`autosave_interval`、`last_dir`，以及最近文件相关配置（`recent_files()`、`visible_recent_files()`、`recent_limit` 1–50、`recent_days` 0 表示不限、`recent_hidden`，打开时间以 JSON 保存）和方法 `add_recent_file()`、`remove_recent_file()`、`clear_recent_files()`。布尔值以 `"true"/"false"` 字符串存储，兼容注册表。
+
+### `clara/fileutils.py`
+`unique_path(path)` 依次尝试 ` (1)`、` (2)` … 直到文件名可用。`resolve_overwrite(parent, i18n, path)` 在目标不存在时直接返回原路径；已存在时弹出警告框，提供「覆盖 / 自动编号 / 取消」，分别返回原路径、编号后的路径或 `None`。Ribbon 导出与转换中心都会在保存对话框之后调用它（对话框使用 `DontConfirmOverwrite`，保证只询问一次）。
 
 ### `clara/i18n.py`
-`STRINGS` 将每个键映射为 `(中文, English)`。`I18n` 保存当前语言，提供 `t(key, **fmt)`（带安全 `str.format`）、`toggle()`、`set_language()`。各界面组件实现 `retranslate()`，切换语言无需重启。
+`STRINGS` 将每个键映射为 `(中文, English)`。`I18n` 保存当前语言（`lang`），提供 `t(key, **fmt)`（带安全 `str.format`）与 `toggle()`。`install_qt_translator(lang)` 负责加载或移除 Qt 自带的 `qtbase_zh_CN` 翻译，使标准右键菜单、对话框按钮跟随界面语言。各界面组件实现 `retranslate()`，切换语言无需重启。
 
 ### `clara/theme.py`
 `build_stylesheet(dark)` 返回一整段 QSS，通过 `objectName`（`RibbonTab`、`RibbonButton`、`GroupTitle`、`MiniButton`、`Outline`、`StatusBar` 等）精确控制样式。强调色为 Word 蓝 `#2b579a`，深色主题使用中性炭灰配色。
@@ -241,6 +245,9 @@ Ribbon 上的“BKP”按钮调用同一函数。
 ## 8. 版本更新记录
 
 版本号规则：每一位只占一位数字，`1.0.9` 之后是 `1.1.0`，再到 `1.1.1` … `1.1.9`、`1.2.0`。
+
+### 1.1.8 — 导出冲突提示
+- 导出 Word/PDF（以及转换中心执行转换）时，若目标文件已存在，不再静默覆盖：弹窗提供「覆盖」「自动编号」（`文件名 (1).ext`、`文件名 (2).ext` …）「取消」。
 
 ### 1.1.7 — 右键菜单跟随界面语言
 - 加载 Qt 自带的 `qtbase_zh_CN` 翻译，编辑器右键菜单（撤消、剪切、复制、粘贴、全选）及标准对话框按钮会跟随界面语言；切换语言后立即生效。

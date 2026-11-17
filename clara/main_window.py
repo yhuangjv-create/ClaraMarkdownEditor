@@ -41,6 +41,7 @@ from .backup import create_backup
 from .convert_page import ConvertPage
 from .docx_io import export_md_to_docx, import_docx_to_md
 from .editor import MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG, MarkdownEditor
+from .fileutils import resolve_overwrite
 from .i18n import I18n, install_qt_translator
 from .outline import OutlinePanel
 from .pdf_io import export_md_to_pdf, import_pdf_to_md
@@ -706,14 +707,19 @@ class MainWindow(QMainWindow):
             ".docx": self.i18n.t("filter.docx"),
             ".pdf": self.i18n.t("filter.pdf"),
         }
+        title = self.i18n.t("act.export_pdf" if suffix == ".pdf" else "act.export_word")
         path, _ = QFileDialog.getSaveFileName(
-            self, self.i18n.t("act.export_word"), default, filters.get(suffix, self.i18n.t("filter.all"))
+            self,
+            title,
+            default,
+            filters.get(suffix, self.i18n.t("filter.all")),
+            options=QFileDialog.DontConfirmOverwrite,
         )
         if not path:
             return None
         if not path.lower().endswith(suffix):
             path += suffix
-        return Path(path)
+        return resolve_overwrite(self, self.i18n, Path(path))
 
     def export_word(self) -> None:
         path = self._export_target(".docx")

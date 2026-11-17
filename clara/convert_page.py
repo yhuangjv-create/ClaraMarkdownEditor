@@ -41,6 +41,7 @@ from .converter import (
     target_preview,
     target_extension,
 )
+from .fileutils import resolve_overwrite
 from .i18n import I18n
 from .render import html_to_plain_text
 
@@ -458,12 +459,20 @@ class ConvertPage(QWidget):
         ) else f"{base}.{ext}"
 
         path, _ = QFileDialog.getSaveFileName(
-            self, self.i18n.t("conv.run"), default_name, filters[ext]
+            self,
+            self.i18n.t("conv.run"),
+            default_name,
+            filters[ext],
+            options=QFileDialog.DontConfirmOverwrite,
         )
         if not path:
             return
         if not path.lower().endswith(f".{ext}"):
             path = f"{path}.{ext}"
+        target = resolve_overwrite(self, self.i18n, Path(path))
+        if target is None:
+            return
+        path = str(target)
 
         try:
             out = convert(direction, path, options, md_text=md_text, source_file=self.source_file)
