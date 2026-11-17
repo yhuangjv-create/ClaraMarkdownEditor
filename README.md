@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.3.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.3.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -28,7 +28,7 @@ Requirements: Python 3.10+ (tested on 3.15), PySide6 6.6+.
 | Feature | Details |
 |---|---|
 | Source mode | Markdown source with line numbers, current-line highlight, monospace font, Tab = 4 spaces |
-| Split mode | Source on the left and a **directly editable** rendered view on the right; edits sync back to Markdown, proportional scroll sync, `Ctrl`+click opens links |
+| Split mode | Source on the left and a **directly editable** rendered view on the right; edits sync back to Markdown, proportional scroll sync, `Ctrl`+click opens links. Home-tab formatting applies to whichever pane was focused last |
 | WYSIWYG mode | Word-like rich text; Markdown syntax is hidden. Bold/italic/strikethrough/inline code, headings, lists, quotes, code blocks and tables survive the round-trip back to Markdown |
 | Ribbon toolbar | File / Home / Insert / View / Convert tabs, collapsible, Fluent-inspired letter icons |
 | Document tabs | Every opened file gets a tab above the editor; click to switch, drag to reorder, `×` to close. Dirty documents show `*` |
@@ -246,6 +246,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.3.1 — Home-tab formatting works on the preview pane
+- Bold, italic, strikethrough, inline code, headings, lists, quotes and inserts now apply to the right pane in split mode when it was the last focused pane, instead of always modifying the source.
+- The target follows focus: click the source or the preview, then use the Home tab.
 
 ### 1.3.0 — Split-preview right pane is editable
 - The rendered pane in split mode is no longer read-only: click and type directly, and the Markdown source updates silently.

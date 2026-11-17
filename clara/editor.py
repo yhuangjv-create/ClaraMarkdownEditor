@@ -25,6 +25,7 @@ from PySide6.QtGui import (
     QTextListFormat,
 )
 from PySide6.QtWidgets import (
+    QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -388,6 +389,7 @@ class MarkdownEditor(QWidget):
 
         self._syncing_scroll = False
         self._preview_syncing = False
+        self._rich_focus = None
 
         self.source.textChanged.connect(self._on_source_changed)
         self.source.cursorPositionChanged.connect(self._emit_cursor)
@@ -398,8 +400,27 @@ class MarkdownEditor(QWidget):
         self.preview.filesDropped.connect(self.filesDropped)
         self.wysiwyg.filesDropped.connect(self.filesDropped)
 
+        app = QApplication.instance()
+        if app is not None:
+            app.focusChanged.connect(self._on_focus_changed)
+
         self._connect_scrollbars()
         self.set_mode(MODE_SPLIT, emit=False)
+
+    def _on_focus_changed(self, _old, new) -> None:
+        """记录最后一次聚焦的可编辑区域，供 Ribbon 按钮判断操作目标。"""
+        if new is self.preview or (new is not None and self.preview.isAncestorOf(new)):
+            self._rich_focus = self.preview
+        elif new is self.source or (new is not None and self.source.isAncestorOf(new)):
+            self._rich_focus = None
+
+    def _rich_editor(self):
+        """返回当前应接收富文本格式操作的控件；None 表示操作源码。"""
+        if self._mode == MODE_WYSIWYG:
+            return self.wysiwyg
+        if self._mode == MODE_SPLIT and self._rich_focus is self.preview:
+            return self.preview
+        return None
 
     # ---------------- 滚动同步 ----------------
     def _connect_scrollbars(self) -> None:
@@ -519,6 +540,7 @@ class MarkdownEditor(QWidget):
         return self.source.toPlainText()
 
     def set_markdown(self, text: str) -> None:
+        self._rich_focus = None
         self.source.blockSignals(True)
         self.source.setPlainText(text)
         self.source.blockSignals(False)
@@ -619,14 +641,13 @@ class MarkdownEditor(QWidget):
 
     # ---------------- 格式操作：两种模式统一入口 ----------------
     def toggle_bold(self) -> None:
-        if self._mode == MODE_WYSIWYG:
+        target = self._rich_editor()
+        if target is not None:
             fmt = QTextCharFormat()
             fmt.setFontWeight(
-                QFont.Normal
-                if self.wysiwyg.fontWeight() >= QFont.Bold
-                else QFont.Bold
+                QFont.Normal if target.fontWeight() >= QFont.Bold else QFont.Bold
             )
-            self.wysiwyg.mergeCurrentCharFormat(fmt)
+            target.mergeCurrentCharFormat(fmt)
             return
         cursor = self.source.textCursor()
         selected = cursor.selectedText()
@@ -636,34 +657,38 @@ class MarkdownEditor(QWidget):
         self._wrap_source_selection("**", "**")
 
     def toggle_italic(self) -> None:
-        if self._mode == MODE_WYSIWYG:
+        target = self._rich_editor()
+        if target is not None:
             fmt = QTextCharFormat()
-            fmt.setFontItalic(not self.wysiwyg.fontItalic())
-            self.wysiwyg.mergeCurrentCharFormat(fmt)
+            fmt.setFontItalic(not target.fontItalic())
+            target.mergeCurrentCharFormat(fmt)
             return
         self._wrap_source_selection("*", "*")
 
     def toggle_strike(self) -> None:
-        if self._mode == MODE_WYSIWYG:
+        target = self._rich_editor()
+        if target is not None:
             fmt = QTextCharFormat()
-            fmt.setFontStrikeOut(not self.wysiwyg.fontStrikeOut())
-            self.wysiwyg.mergeCurrentCharFormat(fmt)
+            fmt.setFontStrikeOut(not target.fontStrikeOut())
+            target.mergeCurrentCharFormat(fmt)
             return
         self._wrap_source_selection("~~", "~~")
 
     def toggle_inline_code(self) -> None:
-        if self._mode == MODE_WYSIWYG:
+        target = self._rich_editor()
+        if target is not None:
             fmt = QTextCharFormat()
             fmt.setFontFamilies(["Consolas"])
             fmt.setFontFixedPitch(True)
-            self.wysiwyg.mergeCurrentCharFormat(fmt)
+            target.mergeCurrentCharFormat(fmt)
             return
         self._wrap_source_selection("`", "`")
 
     def set_heading(self, level: int) -> None:
         prefix = "#" * level + " "
-        if self._mode == MODE_WYSIWYG:
-            cursor = self.wysiwyg.textCursor()
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
             block_fmt = cursor.blockFormat()
             block_fmt.setHeadingLevel(level)
             cursor.setBlockFormat(block_fmt)
@@ -683,8 +708,9 @@ class MarkdownEditor(QWidget):
         self._prefix_selected_lines(apply)
 
     def toggle_list(self, ordered: bool = False) -> None:
-        if self._mode == MODE_WYSIWYG:
-            cursor = self.wysiwyg.textCursor()
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
             current = cursor.currentList()
             if current is not None:
                 current.remove(cursor.block())
@@ -695,7 +721,7 @@ class MarkdownEditor(QWidget):
             )
             fmt.setIndent(1)
             cursor.createList(fmt)
-            self.wysiwyg.setFocus()
+            target.setFocus()
             return
 
         def apply(line: str) -> str:
@@ -711,14 +737,15 @@ class MarkdownEditor(QWidget):
         self._prefix_selected_lines(apply)
 
     def toggle_quote(self) -> None:
-        if self._mode == MODE_WYSIWYG:
-            cursor = self.wysiwyg.textCursor()
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
             block_fmt = cursor.blockFormat()
             active = bool(block_fmt.property(QUOTE_PROP))
             block_fmt.setProperty(QUOTE_PROP, not active)
             block_fmt.setLeftMargin(0 if active else 18)
             cursor.setBlockFormat(block_fmt)
-            self.wysiwyg.setFocus()
+            target.setFocus()
             return
 
         def apply(line: str) -> str:
@@ -730,11 +757,12 @@ class MarkdownEditor(QWidget):
 
     # ---------------- 插入片段 ----------------
     def _insert(self, text: str) -> None:
-        if self._mode == MODE_WYSIWYG:
-            cursor = self.wysiwyg.textCursor()
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
             cursor.insertText(text)
-            self.wysiwyg.setTextCursor(cursor)
-            self.wysiwyg.setFocus()
+            target.setTextCursor(cursor)
+            target.setFocus()
             return
         cursor = self.source.textCursor()
         cursor.insertText(text)
@@ -744,12 +772,13 @@ class MarkdownEditor(QWidget):
         self.contentChanged.emit()
 
     def insert_link(self) -> None:
-        if self._mode == MODE_WYSIWYG:
-            cursor = self.wysiwyg.textCursor()
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
             text = cursor.selectedText() or "链接文字"
             cursor.insertText(f"{text} (https://)")
-            self.wysiwyg.setTextCursor(cursor)
-            self.wysiwyg.setFocus()
+            target.setTextCursor(cursor)
+            target.setFocus()
             return
         cursor = self.source.textCursor()
         text = cursor.selectedText() or "链接文字"
@@ -777,8 +806,9 @@ class MarkdownEditor(QWidget):
         self._insert("\n---\n\n")
 
     def insert_code_block(self) -> None:
-        if self._mode == MODE_WYSIWYG:
-            cursor = self.wysiwyg.textCursor()
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
             cursor.insertBlock()
             block_fmt = QTextBlockFormat()
             block_fmt.setProperty(CODE_PROP, True)
@@ -790,7 +820,7 @@ class MarkdownEditor(QWidget):
             cursor.insertText("代码")
             cursor.insertBlock()
             cursor.setBlockFormat(QTextBlockFormat())
-            self.wysiwyg.setTextCursor(cursor)
-            self.wysiwyg.setFocus()
+            target.setTextCursor(cursor)
+            target.setFocus()
             return
         self._insert("\n```\n\n```\n\n")
