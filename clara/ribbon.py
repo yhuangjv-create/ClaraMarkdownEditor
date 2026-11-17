@@ -107,7 +107,7 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
         ],
     ),
     (
-        "tab.view",
+        "tab.settings",
         [
             (
                 "group.tools",

@@ -53,7 +53,7 @@ STRINGS: dict[str, tuple[str, str]] = {
     "tab.file": ("文件", "File"),
     "tab.home": ("开始", "Home"),
     "tab.insert": ("插入", "Insert"),
-    "tab.view": ("视图", "View"),
+    "tab.settings": ("设置", "Settings"),
     "tab.convert": ("转换", "Convert"),
 
     # ---------- 文件操作 ----------
