@@ -316,12 +316,16 @@ class MainWindow(QMainWindow):
     def _undo(self) -> None:
         if self.editor.mode == MODE_WYSIWYG:
             self.editor.wysiwyg.undo()
+        elif self.editor.mode == MODE_SPLIT and self.editor.preview.hasFocus():
+            self.editor.preview.undo()
         else:
             self.editor.source.undo()
 
     def _redo(self) -> None:
         if self.editor.mode == MODE_WYSIWYG:
             self.editor.wysiwyg.redo()
+        elif self.editor.mode == MODE_SPLIT and self.editor.preview.hasFocus():
+            self.editor.preview.redo()
         else:
             self.editor.source.redo()
 

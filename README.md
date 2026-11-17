@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.2.9** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.3.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -28,7 +28,7 @@ Requirements: Python 3.10+ (tested on 3.15), PySide6 6.6+.
 | Feature | Details |
 |---|---|
 | Source mode | Markdown source with line numbers, current-line highlight, monospace font, Tab = 4 spaces |
-| Split mode | Source on the left, live rendered preview on the right, proportional scroll sync |
+| Split mode | Source on the left and a **directly editable** rendered view on the right; edits sync back to Markdown, proportional scroll sync, `Ctrl`+click opens links |
 | WYSIWYG mode | Word-like rich text; Markdown syntax is hidden. Bold/italic/strikethrough/inline code, headings, lists, quotes, code blocks and tables survive the round-trip back to Markdown |
 | Ribbon toolbar | File / Home / Insert / View / Convert tabs, collapsible, Fluent-inspired letter icons |
 | Document tabs | Every opened file gets a tab above the editor; click to switch, drag to reorder, `×` to close. Dirty documents show `*` |
@@ -41,7 +41,7 @@ Requirements: Python 3.10+ (tested on 3.15), PySide6 6.6+.
 **Caveats**
 
 - WYSIWYG nested list levels may flatten; tables inserted while in WYSIWYG remain literal Markdown text until you switch to source mode.
-- Rendering in split preview uses Qt's HTML/CSS subset, so very exotic Markdown extensions may look simpler than on GitHub.
+- Rendering in split preview uses Qt's HTML/CSS subset, so very exotic Markdown extensions may look simpler than on GitHub. Typing in the right pane round-trips through the same rich-text → Markdown converter as WYSIWYG mode.
 - PDF export produces a text-based PDF; fonts depend on what is installed on the system.
 - Switching between document tabs reloads the document text, so the undo history restarts for that tab.
 
@@ -130,7 +130,7 @@ app.py
 
 Data flow in one sentence: **main_window owns the document state** (`current_file`, `dirty`, editor content), and every other module is either a rendering helper, a converter, or a pure UI component that reports back through Qt signals.
 
-- Split preview: `MarkdownEditor._on_source_changed` → 160 ms debounce → `render.md_to_html` → `QTextBrowser.setHtml`.
+- Split preview: `MarkdownEditor._on_source_changed` → 160 ms debounce → `render.md_to_html` → `PreviewEditor.setHtml`; typing in the right pane calls `document_to_markdown` and rewrites the source silently.
 - WYSIWYG switch: `MarkdownEditor.set_mode` → `mark_quote_blocks` + `md_to_html` → rich text; switching back calls `document_to_markdown`.
 - Conversion: `ConvertPage.refresh` asks `converter.source_preview` / `target_preview`; `run_conversion` calls `converter.convert`, which dispatches to `docx_io` / `pdf_io`.
 
@@ -187,7 +187,8 @@ Serializer for the WYSIWYG document. Custom block properties `QUOTE_PROP` and `C
 ### `clara/editor.py`
 - `LineNumberArea` + `SourceEditor`: line-number gutter, current-line highlight, monospace font, auto-indent, Tab/Backtab indent support.
 - `FindBar`: inline search with match counter, next/previous, Esc to close.
-- `MarkdownEditor`: owns a `QSplitter` with a source editor and a `QTextBrowser`; three modes (`source`, `split`, `wysiwyg`), 160 ms preview debounce, proportional scroll sync in both directions, `contentChanged` / `documentLoaded` / `cursorMoved` / `modeChanged` signals, formatting commands (`toggle_bold`, `toggle_italic`, `toggle_strike`, `toggle_inline_code`, `set_heading`, `toggle_list`, `toggle_quote`) and insert helpers (link, image, table, horizontal rule, code block).
+- `PreviewEditor`: editable rich-text pane used by split mode; `Ctrl`+click follows links, plain typing is converted back to Markdown.
+- `MarkdownEditor`: owns a `QSplitter` with a source editor and an editable `PreviewEditor`; three modes (`source`, `split`, `wysiwyg`), 160 ms preview debounce, bidirectional rich-text ↔ Markdown sync in split mode, proportional scroll sync in both directions, `contentChanged` / `documentLoaded` / `cursorMoved` / `modeChanged` signals, formatting commands (`toggle_bold`, `toggle_italic`, `toggle_strike`, `toggle_inline_code`, `set_heading`, `toggle_list`, `toggle_quote`) and insert helpers (link, image, table, horizontal rule, code block).
 
 ### `clara/outline.py`
 `OutlinePanel` lists headings using `iter_headings`, indents by level and emits `headingActivated(line)` on click; the main window scrolls the editor to that line.
@@ -245,6 +246,11 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.3.0 — Split-preview right pane is editable
+- The rendered pane in split mode is no longer read-only: click and type directly, and the Markdown source updates silently.
+- Editing in either pane keeps the other in sync (source → preview after a 160 ms debounce, preview → source immediately); scroll ratio and theme changes preserve content.
+- Links open with `Ctrl`+click so a plain click can place the caret.
 
 ### 1.2.9 — Inline editable autosave interval
 - The “Every N minutes” entry now embeds a spin box directly in the drop-down; type or step the number without opening a dialog.

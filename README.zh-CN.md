@@ -4,7 +4,7 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.2.9** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
+版本：**1.3.0** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
 ---
 
@@ -28,7 +28,7 @@ python app.py
 | 功能 | 说明 |
 |---|---|
 | 代码编辑模式 | Markdown 源码编辑，行号、当前行高亮、等宽字体，Tab 缩进 4 空格 |
-| 分屏同步模式 | 左源码 + 右实时预览，滚动位置按比例联动 |
+| 分屏同步模式 | 左源码 + 右侧**可直接编辑**的渲染视图，修改会回写 Markdown，滚动按比例联动，`Ctrl`+单击打开链接 |
 | 所见即所得模式 | 仿 Word 富文本，隐藏 Markdown 语法；加粗/斜体/删除线/行内代码、标题、列表、引用、代码块、表格可完整往返 |
 | Ribbon 工具栏 | 文件 / 开始 / 插入 / 视图 / 转换 五个选项卡，可折叠，字母图标为 Fluent 风格 |
 | 文档标签页 | 每个打开的文件在编辑区上方显示一个标签，点击切换、拖动排序、`×` 关闭；有未保存修改时显示 `*` |
@@ -41,7 +41,7 @@ python app.py
 **注意事项**
 
 - 所见即所得模式下嵌套列表层级可能被压平；在该模式下插入的表格会以字面 Markdown 文本存在，切回源码模式编辑即可。
-- 分屏预览使用 Qt 的 HTML/CSS 子集，极特殊的 Markdown 扩展显示效果会比 GitHub 简化。
+- 分屏预览使用 Qt 的 HTML/CSS 子集，极特殊的 Markdown 扩展显示效果会比 GitHub 简化。右侧直接输入时，内容会经过与所见即所得相同的「富文本 → Markdown」转换。
 - 导出的是文字型 PDF，字体取决于系统已安装字体。
 - 切换文档标签会重新载入文档内容，因此该标签的撤销历史会重置。
 
@@ -130,7 +130,7 @@ app.py
 
 一句话概括：**main_window 持有文档状态**（`current_file`、`dirty`、编辑器内容），其他模块要么是渲染/转换工具，要么是通过 Qt 信号回报的纯 UI 组件。
 
-- 分屏预览：`MarkdownEditor._on_source_changed` → 160ms 防抖 → `render.md_to_html` → `QTextBrowser.setHtml`。
+- 分屏预览：`MarkdownEditor._on_source_changed` → 160ms 防抖 → `render.md_to_html` → `PreviewEditor.setHtml`；在右侧输入时调用 `document_to_markdown` 静默回写源码。
 - 模式切换：`set_mode` → `mark_quote_blocks` + `md_to_html` 生成富文本；切回源码时调用 `document_to_markdown`。
 - 转换流程：`ConvertPage.refresh` 调用 `converter.source_preview` / `target_preview`；`run_conversion` 调用 `converter.convert`，再分发到 `docx_io` / `pdf_io`。
 
@@ -187,7 +187,8 @@ app.py
 ### `clara/editor.py`
 - `LineNumberArea` + `SourceEditor`：行号栏、当前行高亮、等宽字体、自动缩进、Tab/Backtab 缩进。
 - `FindBar`：页内查找，带匹配计数、下一个/上一个、Esc 关闭。
-- `MarkdownEditor`：用 `QSplitter` 组合源码编辑器与 `QTextBrowser`；三种模式（`source`、`split`、`wysiwyg`）、160ms 预览防抖、双向按比例滚动联动；信号 `contentChanged` / `documentLoaded` / `cursorMoved` / `modeChanged`；格式化命令（加粗、斜体、删除线、行内代码、标题、列表、引用）与插入命令（链接、图片、表格、分隔线、代码块）。
+- `PreviewEditor`：分屏右侧使用的可编辑富文本视图；`Ctrl`+单击打开链接，普通输入会回写为 Markdown。
+- `MarkdownEditor`：用 `QSplitter` 组合源码编辑器与可编辑的 `PreviewEditor`；三种模式（`source`、`split`、`wysiwyg`）、160ms 预览防抖、分屏下富文本与 Markdown 双向同步、双向按比例滚动联动；信号 `contentChanged` / `documentLoaded` / `cursorMoved` / `modeChanged`；格式化命令（加粗、斜体、删除线、行内代码、标题、列表、引用）与插入命令（链接、图片、表格、分隔线、代码块）。
 
 ### `clara/outline.py`
 `OutlinePanel` 用 `iter_headings` 列出标题，按级别缩进，点击时发出 `headingActivated(line)`，主窗口据此滚动编辑器。
@@ -245,6 +246,11 @@ Ribbon 上的“BKP”按钮调用同一函数。
 ## 8. 版本更新记录
 
 版本号规则：每一位只占一位数字，`1.0.9` 之后是 `1.1.0`，再到 `1.1.1` … `1.1.9`、`1.2.0`。
+
+### 1.3.0 — 分屏右侧可直接编辑
+- 分屏模式右侧的渲染视图不再是只读：可直接点击输入，Markdown 源码会静默同步更新。
+- 任一侧编辑都会同步另一侧（源码 → 预览经 160ms 防抖，预览 → 源码立即生效）；滚动比例与主题切换不会丢失内容。
+- 链接改为 `Ctrl`+单击打开，普通单击用于放置光标。
 
 ### 1.2.9 — 自动保存间隔改为菜单内直接输入
 - 「每 N 分钟自动保存」改为在下拉菜单内嵌数字输入框，无需弹窗即可输入或微调。

@@ -2,7 +2,7 @@
 
 包含三种模式：
 - 源码模式   左：Markdown 源码（带行号）
-- 分屏预览   源码 + 右侧实时预览，滚动联动
+- 分屏预览   源码 + 右侧可编辑的实时渲染视图，双向同步、滚动联动
 - 所见即所得 富文本编辑（内部保存为 Markdown）
 
 另外提供查找栏（FindBar）以及常用 Markdown 片段插入方法。
@@ -12,9 +12,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QRect, QSize, Qt, QTimer, Signal
+from PySide6.QtCore import QRect, QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import (
     QColor,
+    QDesktopServices,
     QFont,
     QFontMetricsF,
     QPainter,
@@ -30,7 +31,6 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPlainTextEdit,
     QSplitter,
-    QTextBrowser,
     QTextEdit,
     QToolButton,
     QVBoxLayout,
@@ -221,6 +221,27 @@ class WysiwygEditor(QTextEdit):
         super().dropEvent(event)
 
 
+class PreviewEditor(WysiwygEditor):
+    """分屏预览右侧的富文本视图：渲染后仍可直接编辑。
+
+    Ctrl + 单击可打开链接；普通单击用于放置光标。
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("Preview")
+        self.setAcceptRichText(True)
+        self.setFrameShape(QFrame.NoFrame)
+
+    def mouseReleaseEvent(self, event) -> None:
+        if event.modifiers() & Qt.ControlModifier:
+            anchor = self.anchorAt(event.position().toPoint())
+            if anchor:
+                QDesktopServices.openUrl(QUrl(anchor))
+                return
+        super().mouseReleaseEvent(event)
+
+
 class FindBar(QFrame):
     """底部查找栏。"""
 
@@ -342,12 +363,7 @@ class MarkdownEditor(QWidget):
         self.source.setPlaceholderText("# 在这里输入 Markdown …")
         self.splitter.addWidget(self.source)
 
-        self.preview = QTextBrowser()
-        self.preview.setObjectName("Preview")
-        self.preview.setOpenExternalLinks(True)
-        self.preview.setFrameShape(QFrame.NoFrame)
-        self.preview.setAcceptDrops(False)
-        self.preview.viewport().setAcceptDrops(False)
+        self.preview = PreviewEditor()
         self.splitter.addWidget(self.preview)
 
         self.wysiwyg = WysiwygEditor()
@@ -371,11 +387,15 @@ class MarkdownEditor(QWidget):
         self._preview_timer.timeout.connect(self._refresh_preview)
 
         self._syncing_scroll = False
+        self._preview_syncing = False
 
         self.source.textChanged.connect(self._on_source_changed)
         self.source.cursorPositionChanged.connect(self._emit_cursor)
+        self.preview.textChanged.connect(self._on_preview_changed)
+        self.preview.cursorPositionChanged.connect(self._emit_cursor)
         self.wysiwyg.textChanged.connect(self._on_wysiwyg_changed)
         self.source.filesDropped.connect(self.filesDropped)
+        self.preview.filesDropped.connect(self.filesDropped)
         self.wysiwyg.filesDropped.connect(self.filesDropped)
 
         self._connect_scrollbars()
@@ -422,10 +442,34 @@ class MarkdownEditor(QWidget):
             self._emit_cursor()
             self.contentChanged.emit()
 
+    def _on_preview_changed(self) -> None:
+        """在右侧渲染视图里直接编辑时，把富文本回写成 Markdown 源码。"""
+        if self._preview_syncing or self._mode != MODE_SPLIT:
+            return
+        md = document_to_markdown(self.preview.document())
+        self._preview_syncing = True
+        self.source.blockSignals(True)
+        self.source.setPlainText(md)
+        self.source.blockSignals(False)
+        self._preview_syncing = False
+        self._emit_cursor()
+        self.contentChanged.emit()
+
     def _refresh_preview(self) -> None:
         text = self.source.toPlainText()
+        bar = self.preview.verticalScrollBar()
+        ratio = bar.value() / bar.maximum() if bar.maximum() else 0.0
+        pos = self.preview.textCursor().position()
+        self._preview_syncing = True
+        self.preview.blockSignals(True)
         self.preview.setHtml(md_to_html(text, dark=self.dark))
-        self.preview.verticalScrollBar().setValue(0)
+        mark_quote_blocks(self.preview.document())
+        cursor = self.preview.textCursor()
+        cursor.setPosition(min(pos, self.preview.document().characterCount() - 1))
+        self.preview.setTextCursor(cursor)
+        self.preview.blockSignals(False)
+        self._preview_syncing = False
+        bar.setValue(round(ratio * bar.maximum()))
 
     def refresh_preview(self) -> None:
         self._refresh_preview()
@@ -494,12 +538,12 @@ class MarkdownEditor(QWidget):
     def _emit_cursor(self) -> None:
         if self._mode == MODE_WYSIWYG:
             cursor = self.wysiwyg.textCursor()
-            line = cursor.blockNumber() + 1
-            col = cursor.positionInBlock() + 1
+        elif self._mode == MODE_SPLIT and self.preview.hasFocus():
+            cursor = self.preview.textCursor()
         else:
             cursor = self.source.textCursor()
-            line = cursor.blockNumber() + 1
-            col = cursor.positionInBlock() + 1
+        line = cursor.blockNumber() + 1
+        col = cursor.positionInBlock() + 1
         self.cursorMoved.emit(line, col)
 
     def goto_line(self, line: int) -> None:

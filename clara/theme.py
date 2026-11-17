@@ -134,10 +134,12 @@ def build_stylesheet(dark: bool = False) -> str:
         font-family: "Cascadia Mono", "Consolas", "Microsoft YaHei UI", monospace;
         font-size: 11pt;
     }}
-    QTextBrowser#Preview {{
+    QTextEdit#Preview {{
         background: {c['editor_bg']};
         border: none;
         padding: 0px;
+        selection-background-color: {c['accent']};
+        selection-color: #ffffff;
     }}
     QFrame#PageFrame {{
         background: {c['page_bg']};
