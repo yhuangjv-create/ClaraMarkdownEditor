@@ -1,0 +1,4 @@
+# Keep line endings consistent on every platform.
+# Text files are stored and checked out with LF; Windows batch files use CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf

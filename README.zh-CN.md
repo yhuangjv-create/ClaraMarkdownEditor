@@ -4,7 +4,7 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.0.7** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
+版本：**1.0.8** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
 ---
 
@@ -73,6 +73,7 @@ ClaraMarkdownEditor/
 ├── run.bat                    # Windows 启动脚本（pythonw 无控制台）
 ├── requirements.txt           # Python 依赖
 ├── .gitignore                 # Git 忽略规则
+├── .gitattributes             # 换行符规则（LF，.bat 用 CRLF）
 ├── README.md                  # 英文版 README（主版本）
 ├── README.zh-CN.md            # 中文版 README（本文件）
 ├── LICENSE                    # MIT 许可证
@@ -236,6 +237,9 @@ Ribbon 上的“BKP”按钮调用同一函数。
 ---
 
 ## 8. 版本更新记录
+
+### 1.0.8 — 换行符配置
+- 新增 `.gitattributes`（`* text=auto eol=lf`，`.bat` 用 CRLF），Git 统一以 LF 存储文本，首次 `git add` 不再出现“LF will be replaced by CRLF”警告。
 
 ### 1.0.7 — 最近文件下拉菜单
 - “最近文件”改为在按钮下方展开的下拉菜单，不再弹出模态对话框；菜单显示文件名，悬停提示完整路径，无记录时显示置灰的“暂无最近文件”。
