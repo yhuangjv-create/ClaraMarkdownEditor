@@ -48,6 +48,14 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
                     ("act.import_pdf", "P<"),
                 ],
             ),
+            (
+                "group.view",
+                [
+                    ("act.mode_source", "MD"),
+                    ("act.mode_split", "||"),
+                    ("act.mode_wysiwyg", "Aa"),
+                ],
+            ),
         ],
     ),
     (
@@ -101,14 +109,6 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
     (
         "tab.view",
         [
-            (
-                "group.view",
-                [
-                    ("act.mode_source", "MD"),
-                    ("act.mode_split", "||"),
-                    ("act.mode_wysiwyg", "Aa"),
-                ],
-            ),
             (
                 "group.tools",
                 [
