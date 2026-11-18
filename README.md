@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.5.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.5.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: A3 paper is now supported in the conversion center. [Full version history ↓](#8-version-history)
+Latest: Font size is disabled for Word/PDF → Markdown, together with paper and margins. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.5.1 — Disabled controls for Markdown output
+- In the Word → Markdown and PDF → Markdown directions the font-size control is now disabled together with paper and margins, since none of them affect a Markdown file. Disabled input fields are shaded so their state is obvious at a glance.
 
 ### 1.5.0 — A3 paper size
 - A3 (297 × 420 mm) is now available in the conversion center's Paper menu for both Word and PDF output; A4 is still the default.

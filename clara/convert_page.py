@@ -383,10 +383,11 @@ class ConvertPage(QWidget):
             self.source_file = None
             self._update_file_label()
 
-        # 仅导出 Word / PDF 时可设置纸张与页边距
+        # 仅导出 Word / PDF 时可设置纸张、页边距与字号
         target_is_md = kind != "md"
         self.paper_combo.setEnabled(not target_is_md)
         self.margin_spin.setEnabled(not target_is_md)
+        self.fontsize_spin.setEnabled(not target_is_md)
         self.choose_btn.setEnabled(True)
         self.refresh()
 

@@ -197,6 +197,10 @@ def build_stylesheet(dark: bool = False) -> str:
     QLineEdit:focus, QComboBox:focus, QSpinBox:focus {{
         border: 1px solid {c['accent']};
     }}
+    QLineEdit:disabled, QComboBox:disabled, QSpinBox:disabled {{
+        background: {c['win']};
+        color: {c['subtext']};
+    }}
     QComboBox QAbstractItemView {{
         background: {c['panel']};
         color: {c['text']};
