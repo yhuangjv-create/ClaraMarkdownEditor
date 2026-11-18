@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.4.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.4.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Newly inserted tables keep the header row and leave all body cells empty. [Full version history ↓](#8-version-history)
+Latest: The app reopens with the same tabs you had last time, including unsaved drafts and cursor positions. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.4.2 — Session restore
+- On exit the app remembers every open tab (order and active tab included). The next launch reopens them, restores unsaved edits and the caret position; saved files are read fresh from disk. Choosing “Discard” when closing no longer resurrects the discarded text.
 
 ### 1.4.1 — Empty table body
 - Inserted tables now only fill the header row (`列 1`, `列 2`, …); every body cell is left empty in both the preview and the Markdown source.

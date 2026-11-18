@@ -197,8 +197,9 @@ class MainWindow(QMainWindow):
         self.editor.set_mode(MODE_SPLIT, emit=False)
         self.settings.editor_mode = MODE_SPLIT
 
-        # 初始文档标签
-        self._add_document(None, "")
+        # 初始文档标签：优先恢复上次会话，否则新建空白文档
+        if not self._restore_session():
+            self._add_document(None, "")
 
     # ------------------------------------------------------------------
     # 定时器：自动保存 / 字数统计 / 大纲刷新
@@ -379,6 +380,81 @@ class MainWindow(QMainWindow):
             doc["text"] = self.editor.get_markdown()
             doc["dirty"] = self.dirty
             doc["path"] = self.current_file
+            doc["cursor"] = self.editor.source.textCursor().position()
+
+    def _save_session(self, active: int | None = None) -> None:
+        """把当前打开的所有标签页与未保存内容写入会话，供下次启动恢复。"""
+        docs = []
+        for doc in self._docs:
+            if doc["path"] is None and not doc["text"].strip() and not doc["dirty"]:
+                continue
+            docs.append(
+                {
+                    "path": str(doc["path"]) if doc["path"] else "",
+                    "text": doc["text"],
+                    "dirty": bool(doc["dirty"]),
+                    "cursor": int(doc.get("cursor", 0) or 0),
+                }
+            )
+        state = {"active": self._active if active is None else active, "docs": docs}
+        self.settings.set_value("session/state", json.dumps(state, ensure_ascii=False))
+
+    def _restore_session(self) -> bool:
+        """启动时恢复上次会话；没有可恢复内容则返回 False。"""
+        raw = self.settings.value("session/state", "")
+        if not raw:
+            return False
+        try:
+            state = json.loads(str(raw))
+            entries = state.get("docs") or []
+        except (TypeError, ValueError):
+            return False
+        entries = [entry for entry in entries if isinstance(entry, dict)]
+        if not entries:
+            return False
+        restored = 0
+        cursors: list[tuple[int, int]] = []
+        for entry in entries:
+            path_text = entry.get("path") or ""
+            text = entry.get("text") or ""
+            dirty = bool(entry.get("dirty"))
+            path = Path(path_text) if path_text else None
+            if path is not None:
+                if not path.exists():
+                    if not text.strip():
+                        continue
+                elif not dirty:
+                    # 已保存的文件以磁盘内容为准
+                    try:
+                        text = path.read_text(encoding="utf-8")
+                    except UnicodeDecodeError:
+                        try:
+                            text = path.read_text(encoding="gbk", errors="replace")
+                        except Exception:
+                            pass
+                    except Exception:
+                        pass
+            self._add_document(path, text, dirty)
+            cursors.append((len(self._docs) - 1, int(entry.get("cursor") or 0)))
+            restored += 1
+        if not restored:
+            return False
+        # 先切换标签页，再写入各文档光标，避免切换过程把光标覆盖为 0
+        try:
+            active = int(state.get("active", 0))
+        except (TypeError, ValueError):
+            active = 0
+        self._activate_document(min(max(0, active), len(self._docs) - 1))
+        for doc_index, position in cursors:
+            self._docs[doc_index]["cursor"] = position
+        self._apply_cursor_position(self._docs[self._active].get("cursor"))
+        return True
+
+    def _apply_cursor_position(self, position) -> None:
+        if isinstance(position, int) and position >= 0:
+            cursor = self.editor.source.textCursor()
+            cursor.setPosition(min(position, len(self.editor.source.toPlainText())))
+            self.editor.source.setTextCursor(cursor)
 
     def _add_document(self, path: str | Path | None, text: str, dirty: bool = False) -> int:
         self._store_active()
@@ -405,6 +481,7 @@ class MainWindow(QMainWindow):
         self.current_file = doc["path"]
         self.dirty = doc["dirty"]
         self.editor.set_markdown(doc["text"])
+        self._apply_cursor_position(doc.get("cursor"))
         self.doc_tabs.blockSignals(True)
         self.doc_tabs.setCurrentIndex(index)
         self.doc_tabs.blockSignals(False)
@@ -1077,16 +1154,34 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self._store_active()
+        active = self._active
         for index in range(len(self._docs)):
-            if self._docs[index]["dirty"]:
-                self._activate_document(index)
-                if not self._maybe_save():
-                    event.ignore()
-                    return
+            doc = self._docs[index]
+            if not doc["dirty"]:
+                continue
+            self._activate_document(index)
+            if not self._maybe_save():
+                event.ignore()
+                return
+            if self.dirty:
+                # 用户选择“不保存”：按磁盘内容恢复，未命名文档不再纳入会话
+                path = doc["path"]
+                if path is not None and path.exists():
+                    try:
+                        doc["text"] = path.read_text(encoding="utf-8")
+                    except UnicodeDecodeError:
+                        doc["text"] = path.read_text(encoding="gbk", errors="replace")
+                    except Exception:
+                        doc["text"] = ""
+                else:
+                    doc["text"] = ""
+                doc["dirty"] = False
+                self.dirty = False
         if self.dirty:
             self._clear_draft()
         else:
             self._write_draft_if_needed()
+        self._save_session(active)
         event.accept()
 
     def _write_draft_if_needed(self) -> None:
