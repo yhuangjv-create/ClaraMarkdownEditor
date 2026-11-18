@@ -132,6 +132,8 @@ STRINGS: dict[str, tuple[str, str]] = {
         "左右对比预览，拖动中间分割条调整比例，转换前后差异一目了然。",
         "Side-by-side preview. Drag the splitter to compare, diffs are highlighted.",
     ),
+    "conv.close": ("✕ 关闭", "✕ Close"),
+    "conv.close_tip": ("关闭转换中心，返回编辑界面", "Close the conversion center and return to the editor"),
     "conv.source": ("源文件", "Source"),
     "conv.use_current": ("使用当前文档", "Use current document"),
     "conv.choose_file": ("选择文件…", "Choose file…"),

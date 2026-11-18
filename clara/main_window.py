@@ -180,6 +180,8 @@ class MainWindow(QMainWindow):
         # 转换页
         self.convert_page = ConvertPage(self.i18n, self.dark)
         self.convert_page.set_context_provider(self._conversion_context)
+        self.convert_page.closeRequested.connect(self._close_convert)
+        self._convert_return_tab = 0
 
         self.pages.addWidget(self.editor_page)
         self.pages.addWidget(self.convert_page)
@@ -317,11 +319,22 @@ class MainWindow(QMainWindow):
             self.pages.setCurrentIndex(0)
         handler()
 
-    def _show_convert(self, direction: str) -> None:
+    def _enter_convert(self) -> None:
+        """切换到转换中心，并记住进入前的功能区选项卡。"""
+        if self.pages.currentIndex() != 1:
+            self._convert_return_tab = self.ribbon.tab_of_action()
         self.pages.setCurrentIndex(1)
         self.ribbon.set_tab(4)
+
+    def _show_convert(self, direction: str) -> None:
+        self._enter_convert()
         self.convert_page.set_direction(direction)
         self.convert_page.refresh()
+
+    def _close_convert(self) -> None:
+        """关闭转换中心，回到编辑界面与原来的功能区选项卡。"""
+        self.pages.setCurrentIndex(0)
+        self.ribbon.set_tab(self._convert_return_tab)
 
     def _undo(self) -> None:
         if self.editor.mode == MODE_WYSIWYG:
@@ -1176,12 +1189,12 @@ class MainWindow(QMainWindow):
                 self.open_path(file)
                 return
             if suffix == ".docx":
-                self.pages.setCurrentIndex(1)
+                self._enter_convert()
                 self.convert_page.set_direction("docx2md")
                 self.convert_page.set_source_file(str(file))
                 return
             if suffix == ".pdf":
-                self.pages.setCurrentIndex(1)
+                self._enter_convert()
                 self.convert_page.set_direction("pdf2md")
                 self.convert_page.set_source_file(str(file))
                 return

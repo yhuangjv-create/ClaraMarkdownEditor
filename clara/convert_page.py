@@ -13,7 +13,7 @@ from __future__ import annotations
 import difflib
 from pathlib import Path
 
-from PySide6.QtCore import QRectF, Qt, QTimer
+from PySide6.QtCore import QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
     QComboBox,
@@ -129,6 +129,8 @@ class DiffStrip(QWidget):
 
 
 class ConvertPage(QWidget):
+    closeRequested = Signal()
+
     def __init__(self, i18n: I18n, dark: bool = False, parent=None):
         super().__init__(parent)
         self.i18n = i18n
@@ -151,6 +153,8 @@ class ConvertPage(QWidget):
         root.setSpacing(10)
 
         # --- 标题 ---
+        header_row = QHBoxLayout()
+        header_row.setSpacing(8)
         header = QVBoxLayout()
         header.setSpacing(2)
         self.title_label = QLabel()
@@ -159,7 +163,15 @@ class ConvertPage(QWidget):
         self.subtitle_label.setStyleSheet("color: #7a7a7a;")
         header.addWidget(self.title_label)
         header.addWidget(self.subtitle_label)
-        root.addLayout(header)
+        header_row.addLayout(header, 1)
+
+        self.close_btn = QPushButton()
+        self.close_btn.setObjectName("ConvertClose")
+        self.close_btn.setCursor(Qt.PointingHandCursor)
+        self.close_btn.setMinimumHeight(28)
+        self.close_btn.clicked.connect(self.closeRequested.emit)
+        header_row.addWidget(self.close_btn, 0, Qt.AlignTop)
+        root.addLayout(header_row)
 
         # --- 参数区 ---
         panel = QFrame()
@@ -503,6 +515,8 @@ class ConvertPage(QWidget):
         i18n = self.i18n
         self.title_label.setText(i18n.t("conv.title"))
         self.subtitle_label.setText(i18n.t("conv.subtitle"))
+        self.close_btn.setText(i18n.t("conv.close"))
+        self.close_btn.setToolTip(i18n.t("conv.close_tip"))
         self.source_label.setText(i18n.t("conv.source"))
         self.choose_btn.setText(i18n.t("conv.choose_file"))
         self.use_current_btn.setText(i18n.t("conv.use_current"))
