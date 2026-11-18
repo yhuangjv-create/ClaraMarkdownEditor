@@ -6,6 +6,8 @@
 
 Version: **1.3.5** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
+Latest: bold/italic/strikethrough toggling now works for text that is already styled. [Full version history ↓](#8-version-history)
+
 ---
 
 ## 1. Quick start
