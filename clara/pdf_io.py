@@ -15,6 +15,7 @@ from PySide6.QtGui import QFont, QPageLayout, QPageSize, QPdfWriter, QTextDocume
 from .render import md_to_html
 
 PAPER_QT = {
+    "A3": QPageSize.A3,
     "A4": QPageSize.A4,
     "A5": QPageSize.A5,
     "B5": QPageSize.B5,

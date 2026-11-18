@@ -24,6 +24,7 @@ from .render import parse_blocks
 
 # 纸张尺寸（毫米）：宽 × 高
 PAPER_SIZES = {
+    "A3": (297, 420),
     "A4": (210, 297),
     "A5": (148, 210),
     "B5": (176, 250),

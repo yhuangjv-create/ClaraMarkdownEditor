@@ -210,7 +210,8 @@ class ConvertPage(QWidget):
         self.paper_label.setMinimumWidth(34)
         row2.addWidget(self.paper_label)
         self.paper_combo = QComboBox()
-        self.paper_combo.addItems(["A4", "A5", "B5", "Letter"])
+        self.paper_combo.addItems(["A3", "A4", "A5", "B5", "Letter"])
+        self.paper_combo.setCurrentText("A4")
         self.paper_combo.currentIndexChanged.connect(self._schedule_refresh)
         row2.addWidget(self.paper_combo)
 
