@@ -100,6 +100,7 @@ STRINGS: dict[str, tuple[str, str]] = {
     "act.theme": ("深色主题", "Dark Theme"),
     "act.theme_light": ("浅色主题", "Light Theme"),
     "act.autosave": ("自动保存", "Auto Save"),
+    "act.restore_session": ("恢复上次会话", "Restore Last Session"),
     "autosave.every_prefix": ("每", "Every"),
     "autosave.every_suffix": ("分钟自动保存", "min auto-save"),
     "autosave.interval_saved": ("自动保存间隔：每 {n} 分钟", "Auto-save interval: every {n} min"),

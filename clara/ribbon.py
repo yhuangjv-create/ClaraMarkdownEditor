@@ -114,6 +114,7 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
                 [
                     ("act.outline", "="),
                     ("act.autosave", "AS"),
+                    ("act.restore_session", "RS"),
                     ("act.about", "i"),
                 ],
             ),

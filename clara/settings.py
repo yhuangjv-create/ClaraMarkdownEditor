@@ -80,6 +80,15 @@ class Settings:
     def autosave_interval(self, seconds: int) -> None:
         self.set_value("autosave/interval", int(seconds))
 
+    # ---------------- 会话恢复 ----------------
+    @property
+    def restore_session(self) -> bool:
+        return str(self.value("session/restore", "true")).lower() == "true"
+
+    @restore_session.setter
+    def restore_session(self, enabled: bool) -> None:
+        self.set_value("session/restore", "true" if enabled else "false")
+
     # ---------------- 最近文件 ----------------
     def recent_files(self) -> list[str]:
         raw = self.value("files/recent", [])

@@ -294,6 +294,7 @@ class MainWindow(QMainWindow):
             "act.outline": self._toggle_outline,
             "act.theme": self._toggle_theme,
             "act.autosave": self.show_autosave_menu,
+            "act.restore_session": self.show_restore_menu,
             "act.backup": self.backup_version,
             "act.about": self.show_about,
             "act.convert_center": lambda: self._show_convert("md2docx"),
@@ -351,6 +352,24 @@ class MainWindow(QMainWindow):
         state = self.i18n.t("common.yes") if enabled else self.i18n.t("common.no")
         self.statusBar().showMessage(f"{self.i18n.t('act.autosave')}: {state}", 3000)
 
+    def show_restore_menu(self) -> None:
+        menu = QMenu(self)
+        action = menu.addAction(self.i18n.t("act.restore_session"))
+        action.setCheckable(True)
+        action.setChecked(self.settings.restore_session)
+        action.toggled.connect(self._set_restore_session)
+        self._exec_menu(menu, "act.restore_session")
+
+    def _set_restore_session(self, enabled: bool) -> None:
+        self.settings.restore_session = enabled
+        if not enabled:
+            # 关闭恢复后清掉已保存的会话，避免下次启动仍被还原
+            self.settings.set_value("session/state", "")
+        state = self.i18n.t("common.yes") if enabled else self.i18n.t("common.no")
+        self.statusBar().showMessage(
+            f"{self.i18n.t('act.restore_session')}: {state}", 3000
+        )
+
     # ------------------------------------------------------------------
     # 文档标签页
     # ------------------------------------------------------------------
@@ -402,7 +421,7 @@ class MainWindow(QMainWindow):
     def _restore_session(self) -> bool:
         """启动时恢复上次会话；没有可恢复内容则返回 False。"""
         raw = self.settings.value("session/state", "")
-        if not raw:
+        if not self.settings.restore_session or not raw:
             return False
         try:
             state = json.loads(str(raw))
@@ -1181,7 +1200,8 @@ class MainWindow(QMainWindow):
             self._clear_draft()
         else:
             self._write_draft_if_needed()
-        self._save_session(active)
+        if self.settings.restore_session:
+            self._save_session(active)
         event.accept()
 
     def _write_draft_if_needed(self) -> None:
