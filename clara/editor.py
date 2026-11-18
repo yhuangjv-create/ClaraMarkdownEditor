@@ -861,7 +861,7 @@ class MarkdownEditor(QWidget):
             # 逐格写入大表格会触发数百次重排（30×30 约 30 秒），改用一次性 HTML 插入
             header = "".join(f"<th>列 {col + 1}</th>" for col in range(cols))
             body = "".join(
-                "<tr>" + "".join("<td>内容</td>" for _ in range(cols)) + "</tr>"
+                "<tr>" + "".join("<td></td>" for _ in range(cols)) + "</tr>"
                 for _ in range(rows - 1)
             )
             html = (
@@ -886,7 +886,7 @@ class MarkdownEditor(QWidget):
             return
         header_md = "| " + " | ".join(f"列 {col + 1}" for col in range(cols)) + " |"
         divider = "| " + " | ".join("---" for _ in range(cols)) + " |"
-        body_md = "| " + " | ".join("内容" for _ in range(cols)) + " |"
+        body_md = "| " + " | ".join("" for _ in range(cols)) + " |"
         lines = [header_md, divider] + [body_md] * (rows - 1)
         self._insert("\n" + "\n".join(lines) + "\n\n")
 
