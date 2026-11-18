@@ -43,7 +43,13 @@ from PySide6.QtWidgets import (
 )
 
 from .i18n import I18n
-from .qt_document import CODE_PROP, QUOTE_PROP, document_to_markdown, mark_quote_blocks
+from .qt_document import (
+    CODE_PROP,
+    QUOTE_PROP,
+    _is_code_format,
+    document_to_markdown,
+    mark_quote_blocks,
+)
 from .render import html_to_md, md_to_html
 
 MODE_SOURCE = "source"
@@ -717,10 +723,26 @@ class MarkdownEditor(QWidget):
     def toggle_inline_code(self) -> None:
         target = self._rich_editor()
         if target is not None:
+            original = QTextCursor(target.textCursor())
+            cursor = QTextCursor(original)
+            if not cursor.hasSelection():
+                # 无选区时作用于光标所在的整个词
+                cursor.select(QTextCursor.WordUnderCursor)
+            target.setTextCursor(cursor)
+            active = self._rich_style_active(target, _is_code_format)
             fmt = QTextCharFormat()
-            fmt.setFontFamilies(["Consolas"])
-            fmt.setFontFixedPitch(True)
-            target.mergeCurrentCharFormat(fmt)
+            if active:
+                # 再点一次取消行内代码：清除等宽字体与代码配色
+                fmt.setFontFamilies([])
+                fmt.setFontFixedPitch(False)
+                fmt.clearBackground()
+                fmt.clearForeground()
+            else:
+                fmt.setFontFamilies(["Consolas"])
+                fmt.setFontFixedPitch(True)
+            cursor.mergeCharFormat(fmt)
+            target.setTextCursor(original)
+            target.setFocus()
             return
         self._wrap_source_selection("`", "`")
 
