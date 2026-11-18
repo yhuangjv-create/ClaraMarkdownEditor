@@ -4,7 +4,7 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.3.4** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.3.5** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
 ---
 
@@ -246,6 +246,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.3.5 — Styled text from Markdown can now be toggled off
+- Bold, Italic and Strikethrough now inspect the whole selection instead of a single cursor position. Text that already carries the style from Markdown (`**text**`, `*text*`, `~~text~~`) is un-styled on the first click and re-styled on the second.
+- Mixed selections (partly styled) are treated as unstyled, so one click applies the style to the entire selection.
 
 ### 1.3.4 — Reliable bold/italic/strikethrough toggling in split preview
 - Clicking Bold, Italic or Strikethrough in the right pane now toggles: the first click applies the style, the second click removes it.

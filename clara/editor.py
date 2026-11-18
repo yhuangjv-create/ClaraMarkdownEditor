@@ -650,13 +650,32 @@ class MarkdownEditor(QWidget):
         self.contentChanged.emit()
 
     # ---------------- 格式操作：两种模式统一入口 ----------------
+    def _rich_style_active(self, target, getter) -> bool:
+        """判断当前选区（或光标处）是否整体处于某种字符样式。"""
+        cursor = target.textCursor()
+        if not cursor.hasSelection():
+            return bool(getter(cursor.charFormat()))
+        probe = QTextCursor(target.document())
+        probe.setPosition(cursor.selectionStart())
+        end = cursor.selectionEnd()
+        seen = False
+        while probe.position() < end:
+            probe.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
+            if not probe.selectedText().strip():
+                continue
+            seen = True
+            if not getter(probe.charFormat()):
+                return False
+        return seen or bool(getter(cursor.charFormat()))
+
     def toggle_bold(self) -> None:
         target = self._rich_editor()
         if target is not None:
-            fmt = QTextCharFormat()
-            fmt.setFontWeight(
-                QFont.Normal if target.fontWeight() >= QFont.Bold else QFont.Bold
+            active = self._rich_style_active(
+                target, lambda f: f.fontWeight() >= QFont.Bold
             )
+            fmt = QTextCharFormat()
+            fmt.setFontWeight(QFont.Normal if active else QFont.Bold)
             target.mergeCurrentCharFormat(fmt)
             return
         cursor = self.source.textCursor()
@@ -669,8 +688,9 @@ class MarkdownEditor(QWidget):
     def toggle_italic(self) -> None:
         target = self._rich_editor()
         if target is not None:
+            active = self._rich_style_active(target, lambda f: f.fontItalic())
             fmt = QTextCharFormat()
-            fmt.setFontItalic(not target.fontItalic())
+            fmt.setFontItalic(not active)
             target.mergeCurrentCharFormat(fmt)
             return
         self._wrap_source_selection("*", "*")
@@ -678,8 +698,9 @@ class MarkdownEditor(QWidget):
     def toggle_strike(self) -> None:
         target = self._rich_editor()
         if target is not None:
+            active = self._rich_style_active(target, lambda f: f.fontStrikeOut())
             fmt = QTextCharFormat()
-            fmt.setFontStrikeOut(not target.currentCharFormat().fontStrikeOut())
+            fmt.setFontStrikeOut(not active)
             target.mergeCurrentCharFormat(fmt)
             return
         cursor = self.source.textCursor()
