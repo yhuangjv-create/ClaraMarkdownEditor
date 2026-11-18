@@ -756,7 +756,7 @@ class MainWindow(QMainWindow):
         layout.setSpacing(6)
         text = QLabel(label, row)
         spin = QSpinBox(row)
-        spin.setRange(1, 20)
+        spin.setRange(1, 2_147_483_647)  # 不限制上限，仅保底 1
         spin.setValue(value)
         spin.setFixedWidth(64)
         layout.addWidget(text)
