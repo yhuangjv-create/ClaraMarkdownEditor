@@ -41,7 +41,7 @@ from .converter import (
     target_preview,
     target_extension,
 )
-from .fileutils import resolve_overwrite
+from .fileutils import notify_exported, resolve_overwrite
 from .i18n import I18n
 from .render import html_to_plain_text
 
@@ -494,10 +494,8 @@ class ConvertPage(QWidget):
 
         self.status_label.setStyleSheet("color: #2e7d32;")
         self.status_label.setText(self.i18n.t("conv.done", path=str(out)))
-        QMessageBox.information(
-            self,
-            self.i18n.t("common.info"),
-            self.i18n.t("conv.done", path=str(out)),
+        notify_exported(
+            self, self.i18n, self.i18n.t("conv.done", path=str(out)), str(out)
         )
 
     # ------------------------------------------------------------------

@@ -38,6 +38,7 @@ STRINGS: dict[str, tuple[str, str]] = {
     # ---------- 通用 ----------
     "app.name": ("ClaraMarkdownEditor", "ClaraMarkdownEditor"),
     "common.ok": ("确定", "OK"),
+    "common.open_file": ("直接打开", "Open file"),
     "common.cancel": ("取消", "Cancel"),
     "common.yes": ("是", "Yes"),
     "common.no": ("否", "No"),

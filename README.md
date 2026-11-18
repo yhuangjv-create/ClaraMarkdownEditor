@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.4.8** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.4.9** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: The Format Conversion Center now has a Close button that returns to the editor. [Full version history ↓](#8-version-history)
+Latest: Export dialogs now offer Open file / OK so you can view the result immediately. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.4.9 — Open the exported file right away
+- After exporting a Word or PDF file, and after a conversion in the conversion center, the confirmation dialog now offers two buttons: Open file (launches the result in the system default app) and OK.
 
 ### 1.4.8 — Close button in the conversion center
 - A Close button in the top-right corner of the Format Conversion Center returns to the editor and restores the Ribbon tab you came from.

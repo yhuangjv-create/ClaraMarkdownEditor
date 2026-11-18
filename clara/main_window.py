@@ -43,7 +43,7 @@ from .backup import create_backup
 from .convert_page import ConvertPage
 from .docx_io import export_md_to_docx, import_docx_to_md
 from .editor import MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG, MarkdownEditor
-from .fileutils import resolve_overwrite
+from .fileutils import notify_exported, resolve_overwrite
 from .i18n import I18n, install_qt_translator
 from .outline import OutlinePanel
 from .pdf_io import export_md_to_pdf, import_pdf_to_md
@@ -972,7 +972,9 @@ class MainWindow(QMainWindow):
         except Exception as exc:
             QMessageBox.critical(self, self.i18n.t("common.error"), self.i18n.t("msg.convert_failed", err=exc))
             return
-        QMessageBox.information(self, self.i18n.t("common.info"), self.i18n.t("msg.export_done", path=str(out)))
+        notify_exported(
+            self, self.i18n, self.i18n.t("msg.export_done", path=str(out)), str(out)
+        )
 
     def export_pdf(self) -> None:
         path = self._export_target(".pdf")
@@ -985,7 +987,9 @@ class MainWindow(QMainWindow):
         except Exception as exc:
             QMessageBox.critical(self, self.i18n.t("common.error"), self.i18n.t("msg.convert_failed", err=exc))
             return
-        QMessageBox.information(self, self.i18n.t("common.info"), self.i18n.t("msg.export_done", path=str(out)))
+        notify_exported(
+            self, self.i18n, self.i18n.t("msg.export_done", path=str(out)), str(out)
+        )
 
     def import_word(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
