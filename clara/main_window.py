@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import time
+from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import QEvent, Qt, QTimer, Signal
@@ -628,6 +629,36 @@ class MainWindow(QMainWindow):
         self.current_file = target
         return self.save_document()
 
+    def _recent_entry(self, menu: RecentMenu, path: Path) -> None:
+        """最近文件条目：文件名 + 完整路径 + 最后修改时间。"""
+        widget = QWidget(menu)
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(14, 6, 22, 6)
+        layout.setSpacing(1)
+        name = QLabel(path.name, widget)
+        font = name.font()
+        font.setBold(True)
+        name.setFont(font)
+        meta = QLabel(widget)
+        meta.setStyleSheet("color: #8a8f98; font-size: 11px;")
+        try:
+            stamp = datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+        except OSError:
+            stamp = ""
+        meta_text = f"{path}    {stamp}" if stamp else str(path)
+        meta.setText(meta.fontMetrics().elidedText(meta_text, Qt.ElideMiddle, 560))
+        meta.setToolTip(f"{path}\n{stamp}")
+        layout.addWidget(name)
+        layout.addWidget(meta)
+        # 交给 QMenu 处理点击/右键，避免自定义控件吞掉事件
+        for child in (widget, name, meta):
+            child.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        action = QWidgetAction(menu)
+        action.setData(str(path))
+        action.setDefaultWidget(widget)
+        action.triggered.connect(lambda _=False, f=str(path): self.open_path(f))
+        menu.addAction(action)
+
     def _recent_menu(self) -> RecentMenu:
         menu = RecentMenu(self)
         menu.remove_label = self.i18n.t("recent.remove")
@@ -641,11 +672,7 @@ class MainWindow(QMainWindow):
             empty = menu.addAction(self.i18n.t("msg.no_recent"))
             empty.setEnabled(False)
         for path in files:
-            item = Path(path)
-            action = menu.addAction(item.name)
-            action.setData(str(item))
-            action.setToolTip(str(item))
-            action.triggered.connect(lambda _=False, f=str(item): self.open_path(f))
+            self._recent_entry(menu, Path(path))
         menu.addSeparator()
         hide_action = menu.addAction(self.i18n.t("recent.hide"))
         hide_action.setCheckable(True)
