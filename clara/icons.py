@@ -6,8 +6,8 @@ Ribbon 按钮图标统一由 text_icon() 生成：把短文本（如 "B"、"H1"�
 
 from __future__ import annotations
 
-from PySide6.QtCore import QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPen, QPixmap
 
 from .theme import ACCENT
 
@@ -22,9 +22,11 @@ def text_icon(
     dark: bool = False,
     bold: bool = True,
     font_size: int = 9,
+    italic: bool = False,
+    strike: bool = False,
 ) -> QIcon:
-    """把文本渲染为圆角图标。"""
-    key = (text, size, color, background, dark, bold, font_size)
+    """把文本渲染为圆角图标；italic 让字母倾斜，strike 在字母中间画删除线。"""
+    key = (text, size, color, background, dark, bold, font_size, italic, strike)
     if key in _CACHE:
         return _CACHE[key]
 
@@ -55,9 +57,17 @@ def text_icon(
         pixel_size = size * (font_size / 10)
     font.setPixelSize(max(7, int(pixel_size)))
     font.setBold(bold)
+    font.setItalic(italic)
     painter.setFont(font)
     painter.setPen(QColor(color))
     painter.drawText(QRectF(0, 0, size, size), Qt.AlignCenter, text)
+
+    if strike:
+        pen = QPen(QColor(color), max(1.2, size * 0.07))
+        pen.setCapStyle(Qt.RoundCap)
+        painter.setPen(pen)
+        y = size / 2
+        painter.drawLine(QPointF(size * 0.18, y), QPointF(size * 0.82, y))
     painter.end()
 
     icon = QIcon(pm)

@@ -154,7 +154,19 @@ class RibbonButton(QToolButton):
     def apply_style(self, label: str, dark: bool) -> None:
         self.setText(label)
         self.setToolTip(label)
-        self.setIcon(text_icon(self.icon_text, size=22, dark=dark, color="#cfe1ff" if dark else ACCENT))
+        effects = {
+            "act.italic": {"italic": True},
+            "act.strike": {"strike": True},
+        }.get(self.action_key, {})
+        self.setIcon(
+            text_icon(
+                self.icon_text,
+                size=22,
+                dark=dark,
+                color="#cfe1ff" if dark else ACCENT,
+                **effects,
+            )
+        )
 
 
 class RibbonGroup(QFrame):
