@@ -418,9 +418,20 @@ class MarkdownEditor(QWidget):
         """返回当前应接收富文本格式操作的控件；None 表示操作源码。"""
         if self._mode == MODE_WYSIWYG:
             return self.wysiwyg
-        if self._mode == MODE_SPLIT and self._rich_focus is self.preview:
-            return self.preview
-        return None
+        if self._mode != MODE_SPLIT:
+            return None
+        # 点击 Ribbon 按钮时焦点通常仍在编辑区，这里实时校正一次，
+        # 避免焦点未发生变化（收不到 focusChanged）时沿用旧目标。
+        current = QApplication.focusWidget()
+        if current is self.preview or (
+            current is not None and self.preview.isAncestorOf(current)
+        ):
+            self._rich_focus = self.preview
+        elif current is self.source or (
+            current is not None and self.source.isAncestorOf(current)
+        ):
+            self._rich_focus = None
+        return self.preview if self._rich_focus is self.preview else None
 
     # ---------------- 滚动同步 ----------------
     def _connect_scrollbars(self) -> None:
@@ -540,7 +551,6 @@ class MarkdownEditor(QWidget):
         return self.source.toPlainText()
 
     def set_markdown(self, text: str) -> None:
-        self._rich_focus = None
         self.source.blockSignals(True)
         self.source.setPlainText(text)
         self.source.blockSignals(False)
