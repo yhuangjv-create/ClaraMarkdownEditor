@@ -9,7 +9,16 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtCore import (
+    QEasingCurve,
+    QPointF,
+    QRectF,
+    QSize,
+    Qt,
+    QVariantAnimation,
+    Signal,
+)
+from PySide6.QtGui import QColor, QLinearGradient, QPainter, QPen
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -23,6 +32,9 @@ from PySide6.QtWidgets import (
 from .icons import text_icon
 from .i18n import I18n
 from .theme import ACCENT
+
+# 需要显示「按下」状态的开关类按钮
+TOGGLE_ACTIONS = {"act.autosave", "act.restore_session"}
 
 # 每个选项卡 -> [(分组标题键, [(动作键, 图标文字), ...]), ...]
 RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
@@ -170,6 +182,111 @@ class RibbonButton(QToolButton):
         )
 
 
+class RibbonToggleButton(RibbonButton):
+    """可保持「按下」外观的 Ribbon 按钮（自动保存 / 恢复会话开关）。
+
+    激活时呈下陷效果：底色叠加、顶部内阴影、底部高光与内描边，
+    状态变化通过 QVariantAnimation 平滑过渡。
+    """
+
+    def __init__(self, action_key: str, icon_text: str, label: str, dark: bool, parent=None):
+        super().__init__(action_key, icon_text, label, dark, parent)
+        self._dark = dark
+        self._active = False
+        self._hover = False
+        self._level = 0.0
+        self._anim = QVariantAnimation(self)
+        self._anim.setDuration(180)
+        self._anim.setEasingCurve(QEasingCurve.OutCubic)
+        self._anim.valueChanged.connect(self._on_anim_value)
+        # 背景与描边改由 paintEvent 绘制，避免样式表覆盖动画
+        self.setStyleSheet(
+            "QToolButton, QToolButton:hover, QToolButton:pressed {"
+            " background: transparent; border: none; }"
+        )
+
+    def set_active(self, active: bool, animate: bool = True) -> None:
+        self._active = bool(active)
+        self._anim.stop()
+        target = 1.0 if self._active else 0.0
+        if not animate:
+            self._level = target
+            self.update()
+            return
+        self._anim.setStartValue(self._level)
+        self._anim.setEndValue(target)
+        self._anim.start()
+
+    def is_active(self) -> bool:
+        return self._active
+
+    def _on_anim_value(self, value) -> None:
+        self._level = float(value)
+        self.update()
+
+    def enterEvent(self, event) -> None:
+        self._hover = True
+        self.update()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event) -> None:
+        self._hover = False
+        self.update()
+        super().leaveEvent(event)
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        rect = QRectF(self.rect()).adjusted(1.0, 1.0, -1.0, -1.0)
+        radius = 5.0
+        level = self._level
+        hover = self._hover and not self._active
+
+        if level > 0.001 or hover:
+            if self._dark:
+                fill = QColor("#3b4b60") if level > 0.001 else QColor("#313d4d")
+                border = QColor("#4a86d8")
+            else:
+                fill = QColor("#d3e2f7") if level > 0.001 else QColor("#e8f0fb")
+                border = QColor("#2b579a")
+            fill.setAlphaF(level if level > 0.001 else 0.9)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(fill)
+            painter.drawRoundedRect(rect, radius, radius)
+
+            if level > 0.001:
+                inner = rect.adjusted(0.5, 0.5, -0.5, -0.5)
+                # 顶部内阴影：让按钮看起来凹下去
+                shadow = QLinearGradient(
+                    inner.topLeft(),
+                    QPointF(inner.left(), inner.top() + inner.height() * 0.55),
+                )
+                shadow.setColorAt(0.0, QColor(0, 0, 0, int(60 * level)))
+                shadow.setColorAt(1.0, QColor(0, 0, 0, 0))
+                painter.setBrush(shadow)
+                painter.drawRoundedRect(inner, radius - 0.5, radius - 0.5)
+                # 底部高光：强化下陷层次
+                highlight = QLinearGradient(
+                    inner.bottomLeft(),
+                    QPointF(inner.left(), inner.bottom() - inner.height() * 0.35),
+                )
+                highlight.setColorAt(0.0, QColor(255, 255, 255, int(90 * level)))
+                highlight.setColorAt(1.0, QColor(255, 255, 255, 0))
+                painter.setBrush(highlight)
+                painter.drawRoundedRect(inner, radius - 0.5, radius - 0.5)
+
+                border.setAlphaF(level)
+                painter.setPen(QPen(border, 1.2))
+            else:
+                border.setAlphaF(0.6)
+                painter.setPen(QPen(border, 1.0))
+            painter.setBrush(Qt.NoBrush)
+            painter.drawRoundedRect(rect, radius, radius)
+
+        painter.end()
+        super().paintEvent(event)
+
+
 class RibbonGroup(QFrame):
     """一组按钮 + 底部标题。"""
 
@@ -225,6 +342,7 @@ class RibbonBar(QWidget):
         self._tab_buttons: list[QToolButton] = []
         self._pages: list[QWidget] = []
         self._action_buttons: dict[str, RibbonButton] = {}
+        self._toggle_states: dict[str, bool] = {key: False for key in TOGGLE_ACTIONS}
         self.rebuild()
 
     # ------------------------------------------------------------------
@@ -294,12 +412,21 @@ class RibbonBar(QWidget):
             for group_key, buttons in groups:
                 group = RibbonGroup(self.i18n.t(group_key))
                 for action_key, icon_text in buttons:
-                    button = RibbonButton(
+                    button_class = (
+                        RibbonToggleButton
+                        if action_key in TOGGLE_ACTIONS
+                        else RibbonButton
+                    )
+                    button = button_class(
                         action_key,
                         icon_text,
                         self._theme_label() if action_key == "act.theme" else self.i18n.t(action_key),
                         self.dark,
                     )
+                    if isinstance(button, RibbonToggleButton):
+                        button.set_active(
+                            self._toggle_states.get(action_key, False), animate=False
+                        )
                     button.clicked.connect(
                         lambda _=False, k=action_key: self.actionTriggered.emit(k)
                     )
@@ -367,6 +494,17 @@ class RibbonBar(QWidget):
     def button_for(self, action_key: str) -> RibbonButton | None:
         """返回动作对应的按钮（用于把下拉菜单挂到按钮下方）。"""
         return self._action_buttons.get(action_key)
+
+    def set_action_active(
+        self, action_key: str, active: bool, animate: bool = True
+    ) -> None:
+        """更新开关类按钮的按下状态（重建功能区后仍保持）。"""
+        if action_key not in TOGGLE_ACTIONS:
+            return
+        self._toggle_states[action_key] = bool(active)
+        button = self._action_buttons.get(action_key)
+        if isinstance(button, RibbonToggleButton):
+            button.set_active(active, animate)
 
     def _theme_label(self) -> str:
         """按钮显示“将切换到的主题”：浅色时显示深色主题，反之亦然。"""

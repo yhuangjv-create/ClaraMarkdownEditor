@@ -127,6 +127,13 @@ class MainWindow(QMainWindow):
         self.ribbon.actionTriggered.connect(self._dispatch)
         self.ribbon.languageToggled.connect(self._toggle_language)
         self.ribbon.themeToggled.connect(self._toggle_theme)
+        # 让开关按钮反映当前的自动保存 / 会话恢复状态
+        self.ribbon.set_action_active(
+            "act.autosave", self.settings.autosave_enabled, animate=False
+        )
+        self.ribbon.set_action_active(
+            "act.restore_session", self.settings.restore_session, animate=False
+        )
         self.setMenuWidget(self.ribbon)
 
         self.pages = QStackedWidget()
@@ -355,6 +362,7 @@ class MainWindow(QMainWindow):
     def _set_autosave(self, enabled: bool) -> None:
         self.settings.autosave_enabled = enabled
         self._restart_autosave()
+        self.ribbon.set_action_active("act.autosave", enabled)
         state = self.i18n.t("common.yes") if enabled else self.i18n.t("common.no")
         self.statusBar().showMessage(f"{self.i18n.t('act.autosave')}: {state}", 3000)
 
@@ -371,6 +379,7 @@ class MainWindow(QMainWindow):
         if not enabled:
             # 关闭恢复后清掉已保存的会话，避免下次启动仍被还原
             self.settings.set_value("session/state", "")
+        self.ribbon.set_action_active("act.restore_session", enabled)
         state = self.i18n.t("common.yes") if enabled else self.i18n.t("common.no")
         self.statusBar().showMessage(
             f"{self.i18n.t('act.restore_session')}: {state}", 3000

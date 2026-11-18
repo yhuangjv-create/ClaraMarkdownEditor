@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.4.6** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.4.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Inline Code now applies on the first click and cancels on the second. [Full version history ↓](#8-version-history)
+Latest: Auto Save and Restore Session buttons now show an animated pressed state while enabled. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.4.7 — Pressed look for setting switches
+- The Auto Save and Restore Last Session buttons stay visually pressed while their feature is on: a soft accent fill, top inner shadow and inset border fade in and out with a short animation. The pressed state survives theme and language switches.
 
 ### 1.4.6 — Inline code toggles off
 - The Inline Code button works the same way: the first click turns the selection (or the word under the caret) into inline code, the second click removes the backticks along with the monospace font and code colours.
