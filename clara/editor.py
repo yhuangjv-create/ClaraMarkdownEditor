@@ -24,11 +24,9 @@ from PySide6.QtGui import (
     QTextCharFormat,
     QTextCursor,
     QTextFormat,
-    QTextFrameFormat,
     QTextImageFormat,
     QTextLength,
     QTextListFormat,
-    QTextTableFormat,
 )
 from PySide6.QtWidgets import (
     QApplication,
@@ -860,27 +858,54 @@ class MarkdownEditor(QWidget):
         cols = max(1, cols)
         target = self._rich_editor()
         if target is not None:
-            cursor = target.textCursor()
-            fmt = QTextTableFormat()
-            fmt.setBorder(1)
-            fmt.setBorderStyle(QTextFrameFormat.BorderStyle_Solid)
-            fmt.setBorderBrush(QColor("#c3d3e6"))
-            fmt.setCellPadding(4)
-            fmt.setCellSpacing(0)
-            table = cursor.insertTable(rows, cols, fmt)
-            for col in range(cols):
-                table.cellAt(0, col).firstCursorPosition().insertText(f"列 {col + 1}")
-            for row in range(1, rows):
-                for col in range(cols):
-                    table.cellAt(row, col).firstCursorPosition().insertText("内容")
-            target.setTextCursor(table.cellAt(0, 0).firstCursorPosition())
+            # 逐格写入大表格会触发数百次重排（30×30 约 30 秒），改用一次性 HTML 插入
+            header = "".join(f"<th>列 {col + 1}</th>" for col in range(cols))
+            body = "".join(
+                "<tr>" + "".join("<td>内容</td>" for _ in range(cols)) + "</tr>"
+                for _ in range(rows - 1)
+            )
+            html = (
+                '<table border="1" cellpadding="4" cellspacing="0">'
+                f"<tr>{header}</tr>{body}</table>"
+            )
+            target.blockSignals(True)
+            try:
+                cursor = target.textCursor()
+                start = cursor.position()
+                cursor.insertHtml(html)
+                target.setTextCursor(cursor)
+                self._move_into_table(target, start)
+            finally:
+                target.blockSignals(False)
+            if target is self.preview:
+                self._on_preview_changed()
+            else:
+                self._emit_cursor()
+                self.contentChanged.emit()
             target.setFocus()
             return
-        header = "| " + " | ".join(f"列 {col + 1}" for col in range(cols)) + " |"
+        header_md = "| " + " | ".join(f"列 {col + 1}" for col in range(cols)) + " |"
         divider = "| " + " | ".join("---" for _ in range(cols)) + " |"
-        body = "| " + " | ".join("内容" for _ in range(cols)) + " |"
-        lines = [header, divider] + [body] * (rows - 1)
+        body_md = "| " + " | ".join("内容" for _ in range(cols)) + " |"
+        lines = [header_md, divider] + [body_md] * (rows - 1)
         self._insert("\n" + "\n".join(lines) + "\n\n")
+
+    def _move_into_table(self, target, start: int) -> None:
+        """把光标放到插入位置之后的第一张表格的首个单元格。"""
+        cursor = QTextCursor(target.document())
+        cursor.setPosition(start)
+        while cursor.currentTable() is None:
+            if not cursor.movePosition(QTextCursor.NextBlock):
+                return
+        table = cursor.currentTable()
+        # 一次性统一样式（合并双击边框、统一边框颜色与内边距）
+        fmt = table.format()
+        fmt.setBorder(1)
+        fmt.setCellSpacing(0)
+        fmt.setCellPadding(4)
+        fmt.setBorderBrush(QColor("#3a4553" if self.dark else "#c3d3e6"))
+        table.setFormat(fmt)
+        target.setTextCursor(table.cellAt(0, 0).firstCursorPosition())
 
     def insert_hr(self) -> None:
         target = self._rich_editor()
