@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.3.6** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.3.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Insert commands (link, image, table, horizontal rule, code block) now render immediately in the split preview. [Full version history ↓](#8-version-history)
+Latest: The Table button opens a dropdown to choose rows and columns (default 3 × 3). [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.3.7 — Table size picker
+- The Table button now opens a dropdown with Rows and Columns spin boxes (1–20, default 3 × 3) plus an Insert Table command, instead of always inserting a 3 × 3 table.
 
 ### 1.3.6 — Insert tab is WYSIWYG in the split preview
 - Link now inserts a real hyperlink (blue, underlined), image inserts the actual picture (scaled to fit), table inserts a formatted 3×3 table, horizontal rule draws a real line, and code block gets a shaded monospace block — no more raw Markdown markers in the right pane.

@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
             "act.find": self._show_find,
             "act.link": self.editor.insert_link,
             "act.image": self.insert_image,
-            "act.table": self.editor.insert_table,
+            "act.table": self.show_table_menu,
             "act.hr": self.editor.insert_hr,
             "act.code_block": self.editor.insert_code_block,
             "act.mode_source": lambda: self._set_mode(MODE_SOURCE),
@@ -747,6 +747,38 @@ class MainWindow(QMainWindow):
 
     def show_autosave_menu(self) -> None:
         self._exec_menu(self._autosave_menu(), "act.autosave")
+
+    def _spin_row(self, menu: QMenu, label: str, value: int) -> QSpinBox:
+        """菜单内的一行「标签 + 数字框」。"""
+        row = QWidget(menu)
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(18, 4, 18, 4)
+        layout.setSpacing(6)
+        text = QLabel(label, row)
+        spin = QSpinBox(row)
+        spin.setRange(1, 20)
+        spin.setValue(value)
+        spin.setFixedWidth(64)
+        layout.addWidget(text)
+        layout.addWidget(spin)
+        action = QWidgetAction(menu)
+        action.setDefaultWidget(row)
+        menu.addAction(action)
+        return spin
+
+    def _table_menu(self) -> QMenu:
+        menu = QMenu(self)
+        rows = self._spin_row(menu, self.i18n.t("table.rows"), 3)
+        cols = self._spin_row(menu, self.i18n.t("table.cols"), 3)
+        menu.addSeparator()
+        insert = menu.addAction(self.i18n.t("table.insert"))
+        insert.triggered.connect(
+            lambda: self.editor.insert_table(rows.value(), cols.value())
+        )
+        return menu
+
+    def show_table_menu(self) -> None:
+        self._exec_menu(self._table_menu(), "act.table")
 
     def _set_autosave_minutes(self, minutes: int) -> None:
         self.settings.autosave_interval = minutes * 60

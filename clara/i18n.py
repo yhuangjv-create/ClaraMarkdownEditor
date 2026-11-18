@@ -88,6 +88,9 @@ STRINGS: dict[str, tuple[str, str]] = {
     "act.table": ("表格", "Table"),
     "act.hr": ("分割线", "Divider"),
     "act.code_block": ("代码块", "Code Block"),
+    "table.rows": ("行数", "Rows"),
+    "table.cols": ("列数", "Columns"),
+    "table.insert": ("插入表格", "Insert Table"),
 
     # ---------- 视图 ----------
     "act.mode_source": ("源码模式", "Source Mode"),

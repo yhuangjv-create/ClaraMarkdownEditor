@@ -855,7 +855,9 @@ class MarkdownEditor(QWidget):
             src, alt = "图片路径.png", "图片"
         self._insert(f"![{alt}]({src})")
 
-    def insert_table(self) -> None:
+    def insert_table(self, rows: int = 3, cols: int = 3) -> None:
+        rows = max(1, rows)
+        cols = max(1, cols)
         target = self._rich_editor()
         if target is not None:
             cursor = target.textCursor()
@@ -865,21 +867,20 @@ class MarkdownEditor(QWidget):
             fmt.setBorderBrush(QColor("#c3d3e6"))
             fmt.setCellPadding(4)
             fmt.setCellSpacing(0)
-            table = cursor.insertTable(3, 3, fmt)
-            for col, label in enumerate(("列 1", "列 2", "列 3")):
-                table.cellAt(0, col).firstCursorPosition().insertText(label)
-            for row in range(1, 3):
-                for col in range(3):
+            table = cursor.insertTable(rows, cols, fmt)
+            for col in range(cols):
+                table.cellAt(0, col).firstCursorPosition().insertText(f"列 {col + 1}")
+            for row in range(1, rows):
+                for col in range(cols):
                     table.cellAt(row, col).firstCursorPosition().insertText("内容")
             target.setTextCursor(table.cellAt(0, 0).firstCursorPosition())
             target.setFocus()
             return
-        table = (
-            "\n| 列 1 | 列 2 | 列 3 |\n"
-            "| --- | --- | --- |\n"
-            "| 内容 | 内容 | 内容 |\n\n"
-        )
-        self._insert(table)
+        header = "| " + " | ".join(f"列 {col + 1}" for col in range(cols)) + " |"
+        divider = "| " + " | ".join("---" for _ in range(cols)) + " |"
+        body = "| " + " | ".join("内容" for _ in range(cols)) + " |"
+        lines = [header, divider] + [body] * (rows - 1)
+        self._insert("\n" + "\n".join(lines) + "\n\n")
 
     def insert_hr(self) -> None:
         target = self._rich_editor()
