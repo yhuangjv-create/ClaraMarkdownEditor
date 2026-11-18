@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.4.3** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.4.5** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Settings → Restore Last Session is now a checkable option in the Ribbon. [Full version history ↓](#8-version-history)
+Latest: Paragraph and Find buttons now toggle off on a second click in the preview. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,12 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.4.5 — Paragraph and Find buttons toggle off
+- In the split preview and WYSIWYG modes, every button in the Home tab’s Paragraph group (H1–H3, bulleted list, numbered list, blockquote) and the Editing group (Find) now applies on the first click and cancels on the second. Cancelling a heading restores the normal font size and weight; lists and quotes toggle across all selected paragraphs at once.
+
+### 1.4.4 — Outline button moved
+- The Outline button moved from Settings to the File tab’s View group, just left of Source Mode; toggling behaviour is unchanged.
 
 ### 1.4.3 — Restore-session switch
 - Added a “Restore Last Session” entry under Settings. Clicking it opens a checkable menu item; unchecking stops saving/restoring the session and clears the stored one, re-checking enables it again.

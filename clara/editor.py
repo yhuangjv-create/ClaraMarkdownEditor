@@ -724,19 +724,55 @@ class MarkdownEditor(QWidget):
             return
         self._wrap_source_selection("`", "`")
 
+    def _selected_blocks(self, cursor):
+        """返回选区覆盖的所有文本块（至少包含光标所在块）。"""
+        document = cursor.document()
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        last_pos = end - 1 if end > start else start
+        block = document.findBlock(start)
+        last = document.findBlock(last_pos)
+        blocks = [block]
+        while block.isValid() and block.position() < last.position():
+            block = block.next()
+            if block.isValid():
+                blocks.append(block)
+        return blocks
+
     def set_heading(self, level: int) -> None:
         prefix = "#" * level + " "
         target = self._rich_editor()
         if target is not None:
             cursor = target.textCursor()
-            block_fmt = cursor.blockFormat()
-            block_fmt.setHeadingLevel(level)
-            cursor.setBlockFormat(block_fmt)
-            fmt = QTextCharFormat()
+            blocks = self._selected_blocks(cursor)
+            # 已全部是同级别标题时，再点一次取消
+            active = bool(blocks) and all(
+                b.blockFormat().headingLevel() == level for b in blocks
+            )
+            new_level = 0 if active else level
             sizes = {1: 24, 2: 20, 3: 17}
-            fmt.setFontPointSize(sizes.get(level, 15))
-            fmt.setFontWeight(QFont.Bold)
-            cursor.mergeCharFormat(fmt)
+            edit = QTextCursor(target.document())
+            edit.beginEditBlock()
+            for block in blocks:
+                block_cursor = QTextCursor(block)
+                block_fmt = block.blockFormat()
+                block_fmt.setHeadingLevel(new_level)
+                block_cursor.setBlockFormat(block_fmt)
+                fmt = QTextCharFormat()
+                if new_level:
+                    fmt.setFontPointSize(sizes.get(new_level, 15))
+                    fmt.setFontWeight(QFont.Bold)
+                else:
+                    # 取消标题：字号恢复为未设置，字重恢复常规
+                    fmt.setFontPointSize(0)
+                    fmt.setFontWeight(QFont.Normal)
+                block_cursor.movePosition(
+                    QTextCursor.EndOfBlock, QTextCursor.KeepAnchor
+                )
+                block_cursor.mergeCharFormat(fmt)
+            edit.endEditBlock()
+            target.setTextCursor(cursor)
+            target.setFocus()
             return
 
         def apply(line: str) -> str:
@@ -751,16 +787,39 @@ class MarkdownEditor(QWidget):
         target = self._rich_editor()
         if target is not None:
             cursor = target.textCursor()
-            current = cursor.currentList()
-            if current is not None:
-                current.remove(cursor.block())
-                return
-            fmt = QTextListFormat()
-            fmt.setStyle(
+            blocks = self._selected_blocks(cursor)
+            style = (
                 QTextListFormat.ListDecimal if ordered else QTextListFormat.ListDisc
             )
-            fmt.setIndent(1)
-            cursor.createList(fmt)
+            # 已全部是同一类型的列表时，再点一次取消
+            active = bool(blocks) and all(
+                b.textList() is not None
+                and b.textList().format().style() == style
+                for b in blocks
+            )
+            edit = QTextCursor(target.document())
+            edit.beginEditBlock()
+            for block in blocks:
+                if block.textList() is not None:
+                    block.textList().remove(block)
+                if active:
+                    block_cursor = QTextCursor(block)
+                    block_fmt = block.blockFormat()
+                    block_fmt.setIndent(0)
+                    block_cursor.setBlockFormat(block_fmt)
+            if not active:
+                list_cursor = QTextCursor(target.document())
+                list_cursor.setPosition(blocks[0].position())
+                list_cursor.setPosition(
+                    blocks[-1].position() + max(0, blocks[-1].length() - 1),
+                    QTextCursor.KeepAnchor,
+                )
+                fmt = QTextListFormat()
+                fmt.setStyle(style)
+                fmt.setIndent(1)
+                list_cursor.createList(fmt)
+            edit.endEditBlock()
+            target.setTextCursor(cursor)
             target.setFocus()
             return
 
@@ -780,11 +839,23 @@ class MarkdownEditor(QWidget):
         target = self._rich_editor()
         if target is not None:
             cursor = target.textCursor()
-            block_fmt = cursor.blockFormat()
-            active = bool(block_fmt.property(QUOTE_PROP))
-            block_fmt.setProperty(QUOTE_PROP, not active)
-            block_fmt.setLeftMargin(0 if active else 18)
-            cursor.setBlockFormat(block_fmt)
+            blocks = self._selected_blocks(cursor)
+            # 已全部是引用时，再点一次取消
+            active = bool(blocks) and all(
+                bool(b.blockFormat().property(QUOTE_PROP)) for b in blocks
+            )
+            edit = QTextCursor(target.document())
+            edit.beginEditBlock()
+            for block in blocks:
+                block_cursor = QTextCursor(block)
+                block_fmt = block.blockFormat()
+                block_fmt.setProperty(QUOTE_PROP, not active)
+                block_fmt.setLeftMargin(0 if active else 18)
+                if active:
+                    block_fmt.clearBackground()
+                block_cursor.setBlockFormat(block_fmt)
+            edit.endEditBlock()
+            target.setTextCursor(cursor)
             target.setFocus()
             return
 

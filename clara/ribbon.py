@@ -51,6 +51,7 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
             (
                 "group.view",
                 [
+                    ("act.outline", "="),
                     ("act.mode_source", "MD"),
                     ("act.mode_split", "||"),
                     ("act.mode_wysiwyg", "Aa"),
@@ -112,7 +113,6 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
             (
                 "group.tools",
                 [
-                    ("act.outline", "="),
                     ("act.autosave", "AS"),
                     ("act.restore_session", "RS"),
                     ("act.about", "i"),

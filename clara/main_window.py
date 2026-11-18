@@ -333,8 +333,14 @@ class MainWindow(QMainWindow):
             self.editor.source.redo()
 
     def _show_find(self) -> None:
+        bar = self.editor.find_bar
+        if bar.isVisible():
+            # 再点一次关闭查找栏
+            bar.hide()
+            self.editor.focus_editor()
+            return
         self.pages.setCurrentIndex(0)
-        self.editor.find_bar.open()
+        bar.open()
 
     def _set_mode(self, mode: str) -> None:
         self.pages.setCurrentIndex(0)
