@@ -8,7 +8,16 @@
 
 from __future__ import annotations
 
-from PySide6.QtGui import QFont, QTextCursor, QTextDocument, QTextFormat, QTextListFormat
+from pathlib import Path
+
+from PySide6.QtGui import (
+    QFont,
+    QTextCursor,
+    QTextDocument,
+    QTextFormat,
+    QTextImageFormat,
+    QTextListFormat,
+)
 
 # 自定义块属性：用于标记「引用」和「代码块」语义
 QUOTE_PROP = QTextFormat.UserProperty + 1
@@ -62,6 +71,12 @@ def _block_inline(block, strip_bold: bool = False) -> str:
         fragment = iterator.fragment()
         if fragment.isValid():
             fmt = fragment.charFormat()
+            if fmt.isImageFormat():
+                name = QTextImageFormat(fmt).name() or ""
+                if name:
+                    parts.append(f"![{Path(name).stem}]({name})")
+                iterator += 1
+                continue
             parts.append(
                 _wrap(
                     fragment.text(),
@@ -202,6 +217,14 @@ def document_to_markdown(document: QTextDocument) -> str:
             continue
 
         block_fmt = block.blockFormat()
+
+        # ---------- 分割线 ----------
+        if block_fmt.hasProperty(QTextFormat.BlockTrailingHorizontalRulerWidth):
+            flush_list()
+            flush_code()
+            blocks.append("---")
+            block = block.next()
+            continue
 
         # ---------- 代码块 ----------
         is_code = bool(block_fmt.property(CODE_PROP)) or block_fmt.nonBreakableLines()

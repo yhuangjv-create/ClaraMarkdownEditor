@@ -18,11 +18,17 @@ from PySide6.QtGui import (
     QDesktopServices,
     QFont,
     QFontMetricsF,
+    QImage,
     QPainter,
     QTextBlockFormat,
     QTextCharFormat,
     QTextCursor,
+    QTextFormat,
+    QTextFrameFormat,
+    QTextImageFormat,
+    QTextLength,
     QTextListFormat,
+    QTextTableFormat,
 )
 from PySide6.QtWidgets import (
     QApplication,
@@ -812,8 +818,14 @@ class MarkdownEditor(QWidget):
         if target is not None:
             cursor = target.textCursor()
             text = cursor.selectedText() or "链接文字"
-            cursor.insertText(f"{text} (https://)")
+            fmt = QTextCharFormat()
+            fmt.setAnchor(True)
+            fmt.setAnchorHref("https://")
+            fmt.setFontUnderline(True)
+            fmt.setForeground(QColor("#1a73e8"))
+            cursor.insertText(text, fmt)
             target.setTextCursor(cursor)
+            target.setCurrentCharFormat(QTextCharFormat())
             target.setFocus()
             return
         cursor = self.source.textCursor()
@@ -823,6 +835,19 @@ class MarkdownEditor(QWidget):
         self.source.setFocus()
 
     def insert_image(self, path: str = "") -> None:
+        target = self._rich_editor()
+        if target is not None and path:
+            image = QImage(path)
+            fmt = QTextImageFormat()
+            fmt.setName(Path(path).as_posix())
+            if not image.isNull() and image.width() > 640:
+                fmt.setWidth(640)
+                fmt.setHeight(image.height() * 640 / image.width())
+            cursor = target.textCursor()
+            cursor.insertImage(fmt)
+            target.setTextCursor(cursor)
+            target.setFocus()
+            return
         if path:
             src = Path(path).as_posix()
             alt = Path(path).stem
@@ -831,6 +856,24 @@ class MarkdownEditor(QWidget):
         self._insert(f"![{alt}]({src})")
 
     def insert_table(self) -> None:
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
+            fmt = QTextTableFormat()
+            fmt.setBorder(1)
+            fmt.setBorderStyle(QTextFrameFormat.BorderStyle_Solid)
+            fmt.setBorderBrush(QColor("#c3d3e6"))
+            fmt.setCellPadding(4)
+            fmt.setCellSpacing(0)
+            table = cursor.insertTable(3, 3, fmt)
+            for col, label in enumerate(("列 1", "列 2", "列 3")):
+                table.cellAt(0, col).firstCursorPosition().insertText(label)
+            for row in range(1, 3):
+                for col in range(3):
+                    table.cellAt(row, col).firstCursorPosition().insertText("内容")
+            target.setTextCursor(table.cellAt(0, 0).firstCursorPosition())
+            target.setFocus()
+            return
         table = (
             "\n| 列 1 | 列 2 | 列 3 |\n"
             "| --- | --- | --- |\n"
@@ -839,6 +882,21 @@ class MarkdownEditor(QWidget):
         self._insert(table)
 
     def insert_hr(self) -> None:
+        target = self._rich_editor()
+        if target is not None:
+            cursor = target.textCursor()
+            cursor.insertBlock()
+            block_fmt = QTextBlockFormat()
+            block_fmt.setProperty(
+                QTextFormat.BlockTrailingHorizontalRulerWidth,
+                QTextLength(QTextLength.PercentageLength, 100.0),
+            )
+            cursor.setBlockFormat(block_fmt)
+            cursor.insertBlock()
+            cursor.setBlockFormat(QTextBlockFormat())
+            target.setTextCursor(cursor)
+            target.setFocus()
+            return
         self._insert("\n---\n\n")
 
     def insert_code_block(self) -> None:
@@ -848,10 +906,12 @@ class MarkdownEditor(QWidget):
             cursor.insertBlock()
             block_fmt = QTextBlockFormat()
             block_fmt.setProperty(CODE_PROP, True)
+            block_fmt.setBackground(QColor("#262626" if self.dark else "#f7f8fa"))
             cursor.setBlockFormat(block_fmt)
             char_fmt = QTextCharFormat()
             char_fmt.setFontFamilies(["Consolas"])
             char_fmt.setFontFixedPitch(True)
+            char_fmt.setForeground(QColor("#e6e6e6" if self.dark else "#1f1f1f"))
             cursor.setCharFormat(char_fmt)
             cursor.insertText("代码")
             cursor.insertBlock()
