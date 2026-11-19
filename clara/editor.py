@@ -388,6 +388,14 @@ class MarkdownEditor(QWidget):
         self.splitter.setStretchFactor(1, 1)
         self.splitter.setSizes([600, 600])
 
+        # 供外部放入真实 PDF 预览（分屏/所见即所得时替代右侧渲染结果）
+        self._pdf_visible = False
+        self.pdf_holder = QWidget()
+        self.pdf_layout = QVBoxLayout(self.pdf_holder)
+        self.pdf_layout.setContentsMargins(0, 0, 0, 0)
+        self.splitter.insertWidget(1, self.pdf_holder)
+        self.pdf_holder.hide()
+
         self.find_bar = FindBar(self.source, i18n)
         self.find_bar.hide()
         layout.addWidget(self.find_bar)
@@ -530,11 +538,13 @@ class MarkdownEditor(QWidget):
 
         self._mode = mode
 
+        show_pdf = self._pdf_visible and mode != MODE_SOURCE
+        self.pdf_holder.setVisible(show_pdf)
         self.source.setVisible(mode in (MODE_SOURCE, MODE_SPLIT))
-        self.preview.setVisible(mode == MODE_SPLIT)
-        self.wysiwyg.setVisible(mode == MODE_WYSIWYG)
+        self.preview.setVisible(mode == MODE_SPLIT and not show_pdf)
+        self.wysiwyg.setVisible(mode == MODE_WYSIWYG and not show_pdf)
 
-        if mode == MODE_WYSIWYG:
+        if mode == MODE_WYSIWYG and not show_pdf:
             html = md_to_html(self.source.toPlainText(), dark=self.dark)
             self.wysiwyg.blockSignals(True)
             self.wysiwyg.setHtml(html)
@@ -543,12 +553,21 @@ class MarkdownEditor(QWidget):
             self.wysiwyg.setFocus()
         elif mode == MODE_SOURCE:
             self.source.setFocus()
+        elif show_pdf:
+            self.splitter.setSizes([600, 600])
         else:
             self._refresh_preview()
             self.splitter.setSizes([600, 600])
 
         if emit:
             self.modeChanged.emit(mode)
+
+    def set_pdf_visible(self, visible: bool) -> None:
+        """右侧改为真实 PDF 预览（仅分屏/所见即所得生效）。"""
+        if self._pdf_visible == bool(visible):
+            return
+        self._pdf_visible = bool(visible)
+        self.set_mode(self._mode, emit=False)
 
     @property
     def mode(self) -> str:

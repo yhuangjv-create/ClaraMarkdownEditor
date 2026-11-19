@@ -180,6 +180,12 @@ class MainWindow(QMainWindow):
             self.pdf_view.document.pageCountChanged.connect(self._on_pdf_pages_changed)
         self.main_splitter.addWidget(self.doc_stack)
 
+        # 分屏/所见即所得下，右侧显示真实 PDF 页面
+        self.pdf_side = PdfPreview() if PDF_PREVIEW_AVAILABLE else None
+        self._pdf_side_path = ""
+        if self.pdf_side is not None:
+            self.editor.pdf_layout.addWidget(self.pdf_side)
+
         self.main_splitter.setStretchFactor(0, 0)
         self.main_splitter.setStretchFactor(1, 1)
         self.main_splitter.setSizes([200, 1080])
@@ -404,9 +410,28 @@ class MainWindow(QMainWindow):
         self.doc_stack.setCurrentWidget(self.editor)
         self.outline.setVisible(self.settings.outline_visible)
         self.editor.set_markdown(text)
+        self._apply_pdf_side()
         self._refresh_outline()
         self._update_status()
         return True
+
+    def _apply_pdf_side(self) -> None:
+        """PDF 标签的 Markdown 视图下，右侧改为真实 PDF 页面。"""
+        if self.pdf_side is None:
+            return
+        doc = self._docs[self._active] if 0 <= self._active < len(self._docs) else None
+        active = (
+            doc is not None
+            and doc.get("kind") == "pdf"
+            and doc.get("view") == "md"
+            and doc.get("path") is not None
+        )
+        if active:
+            path = str(doc["path"])
+            if path != self._pdf_side_path:
+                self.pdf_side.load(path)
+                self._pdf_side_path = path
+        self.editor.set_pdf_visible(active)
 
     def _toggle_outline(self) -> None:
         if not self._show_pdf_markdown_view():
@@ -620,6 +645,7 @@ class MainWindow(QMainWindow):
         self.doc_tabs.blockSignals(True)
         self.doc_tabs.setCurrentIndex(index)
         self.doc_tabs.blockSignals(False)
+        self._apply_pdf_side()
         self._update_titles()
         self._update_status()
 
@@ -702,6 +728,7 @@ class MainWindow(QMainWindow):
         self._update_titles()
         self._refresh_outline()
         self._update_status()
+        self._apply_pdf_side()
 
     # ------------------------------------------------------------------
     # 文件操作
@@ -745,6 +772,7 @@ class MainWindow(QMainWindow):
             MODE_WYSIWYG: self.i18n.t("act.mode_wysiwyg"),
         }
         self.status_mode.setText(self.i18n.t("status.mode", mode=names.get(mode, mode)))
+        self._apply_pdf_side()
 
     def _update_status(self) -> None:
         if self._pdf_view_showing():
@@ -1165,6 +1193,7 @@ class MainWindow(QMainWindow):
         self.pdf_view.load(str(path))
         self.doc_stack.setCurrentWidget(self.pdf_view)
         self.outline.setVisible(False)
+        self._apply_pdf_side()
         self._update_active_tab()
         self._update_titles()
         self._update_status()

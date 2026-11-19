@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.6.1** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.6.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: PDF tabs show their converted Markdown in Outline / Source / Split. [Full version history ↓](#8-version-history)
+Latest: Split and WYSIWYG show the original PDF pages side by side with its Markdown. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.6.2 — Real PDF pages in Split and WYSIWYG
+- With a PDF tab in its Markdown view, Split shows the converted Markdown on the left and the untouched PDF page on the right; WYSIWYG shows the full PDF page.
+- Fonts, colors, images and layout now match the original PDF instead of a re-rendered approximation.
 
 ### 1.6.1 — Converted Markdown views for PDF tabs
 - With a PDF tab active, Outline / Source / Split / WYSIWYG now show the Markdown converted from that same PDF (real headings included), instead of switching to another document.
