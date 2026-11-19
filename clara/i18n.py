@@ -105,7 +105,6 @@ STRINGS: dict[str, tuple[str, str]] = {
     "autosave.every_prefix": ("每", "Every"),
     "autosave.every_suffix": ("分钟自动保存", "min auto-save"),
     "autosave.interval_saved": ("自动保存间隔：每 {n} 分钟", "Auto-save interval: every {n} min"),
-    "act.backup": ("开发备份", "Developer Backup"),
     "act.lang": ("English", "中文"),
     "act.about": ("关于", "About"),
 
@@ -202,14 +201,10 @@ STRINGS: dict[str, tuple[str, str]] = {
     "msg.exists_rename": ("另存为…", "Save as…"),
     "msg.recover_title": ("发现自动保存草稿", "Auto-saved draft found"),
     "msg.recover_text": ("检测到未保存的自动保存草稿，是否恢复？", "An auto-saved draft was found. Restore it?"),
-    "about.backup": ("创建开发备份", "Create developer backup"),
-    "msg.backup_done": ("已创建版本备份：\n{path}", "Version backup created:\n{path}"),
-    "msg.backup_prompt": ("请输入本次改动说明（用于备份文件夹命名）：", "Describe this change (used in the backup folder name):"),
     "msg.about_text": (
         "ClaraMarkdownEditor 版本 {ver}\n\n轻量级 Markdown 编辑器，支持 Markdown / Word / PDF 三向转换与左右对比预览。\n\n技术栈：Python + PySide6 + python-docx + pypdf",
         "ClaraMarkdownEditor version {ver}\n\nA lightweight Markdown editor with Markdown / Word / PDF conversion and side-by-side preview.\n\nBuilt with Python + PySide6 + python-docx + pypdf",
     ),
-    "msg.create_failed": ("创建失败：{err}", "Create failed: {err}"),
 
     # ---------- 文件对话框 ----------
     "filter.md": ("Markdown 文件 (*.md *.markdown)", "Markdown files (*.md *.markdown)"),

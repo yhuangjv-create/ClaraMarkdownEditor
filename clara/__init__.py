@@ -4,5 +4,5 @@
 """
 
 APP_NAME = "ClaraMarkdownEditor"
-__version__ = "1.6.3"
+__version__ = "1.6.4"
 ORG_NAME = "Clara"

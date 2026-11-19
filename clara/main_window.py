@@ -22,7 +22,6 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QMainWindow,
     QMenu,
@@ -39,7 +38,6 @@ from PySide6.QtWidgets import (
 )
 
 from . import APP_NAME, __version__
-from .backup import create_backup
 from .convert_page import PDF_PREVIEW_AVAILABLE, ConvertPage, PdfPreview
 from .docx_io import export_md_to_docx, import_docx_to_md
 from .editor import MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG, MarkdownEditor
@@ -318,7 +316,6 @@ class MainWindow(QMainWindow):
             "act.theme": self._toggle_theme,
             "act.autosave": self.show_autosave_menu,
             "act.restore_session": self.show_restore_menu,
-            "act.backup": self.backup_version,
             "act.about": self.show_about,
             "act.convert_center": lambda: self._show_convert("md2docx"),
             "act.md2docx": lambda: self._show_convert("md2docx"),
@@ -1309,23 +1306,8 @@ class MainWindow(QMainWindow):
             self._clear_draft()
 
     # ------------------------------------------------------------------
-    # 版本备份 / 关于
+    # 关于
     # ------------------------------------------------------------------
-    def backup_version(self) -> None:
-        note, ok = QInputDialog.getText(
-            self, self.i18n.t("act.backup"), self.i18n.t("msg.backup_prompt")
-        )
-        if not ok:
-            return
-        try:
-            target = create_backup(APP_DIR, __version__, note or "update")
-        except Exception as exc:
-            QMessageBox.critical(self, self.i18n.t("common.error"), self.i18n.t("msg.create_failed", err=exc))
-            return
-        QMessageBox.information(
-            self, self.i18n.t("common.info"), self.i18n.t("msg.backup_done", path=str(target))
-        )
-
     def _build_about_dialog(self) -> QDialog:
         dialog = QDialog(self)
         dialog.setWindowTitle(self.i18n.t("act.about"))
@@ -1337,12 +1319,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(text)
 
         row = QHBoxLayout()
-        backup_button = QPushButton(self.i18n.t("about.backup"))
-        backup_button.clicked.connect(self.backup_version)
         close_button = QPushButton(self.i18n.t("common.close"))
         close_button.setDefault(True)
         close_button.clicked.connect(dialog.accept)
-        row.addWidget(backup_button)
         row.addStretch(1)
         row.addWidget(close_button)
         layout.addLayout(row)

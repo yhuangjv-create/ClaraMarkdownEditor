@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.6.3** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.6.4** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Split view panes are equal width again. [Full version history ↓](#8-version-history)
+Latest: The About dialog now only shows version info and a Close button. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -209,8 +209,8 @@ Builds the window: `RibbonBar`, a `QStackedWidget` (editor page / conversion pag
 - Export/import shortcuts for Word/PDF reusing `converter` and `docx_io` / `pdf_io`.
 - Autosave: QTimer writes `.autosave/draft.md` + `draft.json` when dirty; `_check_draft` offers recovery at startup.
 - Language/theme: `_toggle_language`, `_toggle_theme`, `_apply_theme` (QSS + editor + convert page + ribbon).
-- `backup_version`: asks for a note and calls `create_backup(APP_DIR, __version__, note)`.
-- `show_about`, `closeEvent` (save prompt, draft flush) and status updates (mode, word count, cursor position).
+- `show_about`: shows version information with a single Close button; developer backups are made from the command line.
+- `closeEvent` (save prompt, draft flush) and status updates (mode, word count, cursor position).
 
 ### `clara/backup.py`
 `create_backup(root, version, note)` copies the whole project into `_backups/{version}_{safe note}/`, ignoring `__pycache__`, `.git`, `.autosave`, `_backups`, `*.pyc`, `*.tmp`, and writes `BACKUP_INFO.txt`. Run from a terminal with:
@@ -219,7 +219,7 @@ Builds the window: `RibbonBar`, a `QStackedWidget` (editor page / conversion pag
 python -m clara.backup "1.0.0 初始版本"
 ```
 
-This is the same routine used by the “BKP” Ribbon button.
+This module is used only from the command line; the About dialog no longer exposes a backup button.
 
 ### `run.bat`
 `cd /d "%~dp0"` then `start "" pythonw app.py` — launches without a console window.
@@ -230,7 +230,7 @@ This is the same routine used by the “BKP” Ribbon button.
 
 1. Bump `__version__` in `clara/__init__.py`.
 2. Add a new entry to the **Version history** section below (both README files).
-3. Run `python -m clara.backup "<change summary>"` (or click **BKP**). A full copy appears as `_backups/<version>_<change summary>/` containing `BACKUP_INFO.txt`.
+3. Run `python -m clara.backup "<change summary>"`. A full copy appears as `_backups/<version>_<change summary>/` containing `BACKUP_INFO.txt`.
 4. Because the backup folder name includes both the version and the change note, every release keeps a self-contained snapshot.
 
 ---
@@ -248,6 +248,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.6.4 — Developer backup button removed from About
+- The “Create developer backup” button is gone from the About dialog, which now only shows the version text and a single Close button.
+- Use `python -m clara.backup "<note>"` for versioned snapshots.
 
 ### 1.6.3 — Split panes are equal again
 - Fixed the split view sizing regression introduced with the PDF work: opening a Markdown file again gives two 50/50 panes.

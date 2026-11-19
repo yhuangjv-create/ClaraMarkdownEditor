@@ -4,9 +4,9 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.6.3** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
+版本：**1.6.4** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
-最新：分屏预览左右两栏恢复等宽。[完整更新记录 ↓](#8-版本更新记录)
+最新：“关于”对话框只保留版本信息与“关闭”按钮。[完整更新记录 ↓](#8-版本更新记录)
 
 ---
 
@@ -209,8 +209,8 @@ app.py
 - Word/PDF 导入导出复用 `converter` 与 `docx_io` / `pdf_io`。
 - 自动保存：QTimer 在有修改时写入 `.autosave/draft.md` + `draft.json`；`_check_draft` 启动时询问恢复。
 - 语言/主题：`_toggle_language`、`_toggle_theme`、`_apply_theme`（QSS + 编辑器 + 转换页 + Ribbon）。
-- `backup_version`：输入说明后调用 `create_backup(APP_DIR, __version__, note)`。
-- `show_about`、`closeEvent`（保存提示、草稿落盘）与状态更新（模式、字数、光标位置）。
+- `show_about`：显示版本信息，只有一个“关闭”按钮；开发备份改用命令行完成。
+- `closeEvent`（保存提示、草稿落盘）与状态更新（模式、字数、光标位置）。
 
 ### `clara/backup.py`
 `create_backup(root, version, note)` 把整个项目复制到 `_backups/{版本号}_{安全说明}/`，忽略 `__pycache__`、`.git`、`.autosave`、`_backups`、`*.pyc`、`*.tmp`，并写入 `BACKUP_INFO.txt`。命令行用法：
@@ -219,7 +219,7 @@ app.py
 python -m clara.backup "1.0.0 初始版本"
 ```
 
-Ribbon 上的“BKP”按钮调用同一函数。
+该模块只通过命令行使用；“关于”对话框不再提供备份按钮。
 
 ### `run.bat`
 `cd /d "%~dp0"` 后执行 `start "" pythonw app.py`，无控制台窗口启动。
@@ -230,7 +230,7 @@ Ribbon 上的“BKP”按钮调用同一函数。
 
 1. 修改 `clara/__init__.py` 中的 `__version__`。
 2. 在下方“版本更新记录”追加一条（两个 README 都要写）。
-3. 运行 `python -m clara.backup "<改动说明>"`（或点击 **BKP**）。完整副本出现在 `_backups/<版本号>_<改动说明>/`，内含 `BACKUP_INFO.txt`。
+3. 运行 `python -m clara.backup "<改动说明>"`。完整副本出现在 `_backups/<版本号>_<改动说明>/`，内含 `BACKUP_INFO.txt`。
 4. 备份文件夹名同时包含版本号与改动说明，因此每个版本都保留独立快照。
 
 ---
@@ -248,6 +248,10 @@ Ribbon 上的“BKP”按钮调用同一函数。
 ## 8. 版本更新记录
 
 版本号规则：每一位只占一位数字，`1.0.9` 之后是 `1.1.0`，再到 `1.1.1` … `1.1.9`、`1.2.0`。
+
+### 1.6.4 — 移除关于页的开发备份按钮
+- “关于”对话框不再提供“创建开发备份”按钮，只显示版本信息与一个“关闭”按钮。
+- 版本快照改用 `python -m clara.backup "<改动说明>"` 生成。
 
 ### 1.6.3 — 分屏两栏恢复等宽
 - 修复 PDF 相关改动带来的分屏尺寸回归：打开 Markdown 文件后左右两栏重新各占一半。
