@@ -48,6 +48,13 @@ def target_extension(direction: str) -> str:
     return DIRECTION_TARGET[direction]
 
 
+def _source_markdown(md_text: str, source_file: str | Path | None) -> str:
+    """Markdown 源：选了文件就读文件，否则用当前文档内容。"""
+    if source_file:
+        return Path(source_file).read_text(encoding="utf-8", errors="replace")
+    return md_text
+
+
 def convert(
     direction: str,
     out_path: str | Path,
@@ -64,7 +71,7 @@ def convert(
 
     if direction == "md2docx":
         return export_md_to_docx(
-            md_text,
+            _source_markdown(md_text, source_file),
             out,
             paper=options.paper,
             margin_mm=options.margin_mm,
@@ -74,7 +81,7 @@ def convert(
 
     if direction == "md2pdf":
         return export_md_to_pdf(
-            md_text,
+            _source_markdown(md_text, source_file),
             out,
             paper=options.paper,
             margin_mm=options.margin_mm,
@@ -111,7 +118,8 @@ def source_preview(
     kind = DIRECTION_SOURCE[direction]
 
     if kind == "md":
-        return md_to_html(md_text, dark=options.dark, font_size=options.font_size), True
+        text = _source_markdown(md_text, source_file)
+        return md_to_html(text, dark=options.dark, font_size=options.font_size), True
 
     if not source_file:
         return "", True
@@ -141,7 +149,7 @@ def target_preview(
     if direction in ("md2docx", "md2pdf"):
         return (
             md_to_html(
-                md_text,
+                _source_markdown(md_text, source_file),
                 dark=options.dark,
                 page=False,
                 font_family=options.font_family,

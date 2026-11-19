@@ -457,7 +457,13 @@ class ConvertPage(QWidget):
             f"insert {counts['insert']} / delete {counts['delete']} / replace {counts['replace']}"
         )
         self.status_label.setStyleSheet("color: #7a7a7a;")
-        self.status_label.setText(f"{Path(current_path).name if current_path else self.i18n.t('common.current_doc')}")
+        if self.source_file:
+            source_name = Path(self.source_file).name
+        elif current_path:
+            source_name = Path(current_path).name
+        else:
+            source_name = self.i18n.t("common.current_doc")
+        self.status_label.setText(source_name)
 
     # ------------------------------------------------------------------
     def run_conversion(self) -> None:
