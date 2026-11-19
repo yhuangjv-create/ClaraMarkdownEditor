@@ -21,6 +21,9 @@ IGNORE = shutil.ignore_patterns(
     "_backups",
     ".autosave",
     "*.tmp",
+    "build",
+    "dist",
+    "*.spec",
 )
 
 

@@ -4,9 +4,9 @@
 
 [English README（主版本）](README.md)
 
-版本：**1.6.5** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
+版本：**1.6.6** · 平台：Windows 10/11（macOS/Linux 在 PySide6 下基本可用） · 许可证：[MIT](LICENSE)
 
-最新：深色模式下标签页的关闭“✕”清晰可见。[完整更新记录 ↓](#8-版本更新记录)
+最新：提供 Windows 安装程序（EXE），可选择安装目录，并可勾选关联 MD 文件、桌面快捷方式与开始菜单快捷方式。[完整更新记录 ↓](#8-版本更新记录)
 
 ---
 
@@ -20,6 +20,16 @@ python app.py
 或直接双击 `run.bat`（用 `pythonw` 启动，不弹控制台）。
 
 环境要求：Python 3.10+（已在 3.15 上验证），PySide6 6.6+。
+
+### 1.1 Windows 安装程序（EXE）
+
+运行 `build_setup.ps1` 即可生成 `dist\ClaraMarkdownEditor_Setup_<版本号>.exe`。
+
+- **依赖：** `pip install pyinstaller pillow`，以及 [Inno Setup 6](https://jrsoftware.org/isinfo.php)。
+- **向导界面：** Inno Setup modern 布局，配有自定义蓝色侧栏与应用图标。
+- **安装目录：** 目录页可自由选择位置（默认仅当前用户，选择“为所有用户安装”需管理员权限）。
+- **勾选项：** 关联 `.md` 文件、创建桌面快捷方式、创建开始菜单快捷方式（默认全部勾选）。
+- **卸载：** 删除快捷方式与注册表项，并恢复安装前的 `.md` 默认打开方式。
 
 ---
 
@@ -74,8 +84,14 @@ python app.py
 ```
 ClaraMarkdownEditor/
 ├── app.py                     # 程序入口
+├── build_setup.ps1            # PyInstaller + Inno Setup 一键打包
 ├── run.bat                    # Windows 启动脚本（pythonw 无控制台）
 ├── requirements.txt           # Python 依赖
+├── installer/                 # 安装包源文件
+│   ├── ClaraMarkdownEditor.iss    # Inno Setup 脚本
+│   ├── make_assets.py             # 生成 app.ico 与向导图片
+│   ├── assets/                    # wizard.bmp / wizard_small.bmp
+│   └── languages/                 # ChineseSimplified.isl
 ├── .gitignore                 # Git 忽略规则
 ├── .gitattributes             # 换行符规则（LF，.bat 用 CRLF）
 ├── README.md                  # 英文版 README（主版本）
@@ -83,7 +99,7 @@ ClaraMarkdownEditor/
 ├── LICENSE                    # MIT 许可证
 ├── clara/                     # 应用包
 │   ├── __init__.py            # 应用名、组织名、版本号
-│   ├── assets/                # 标签页关闭图标（浅色/深色 SVG）
+│   ├── assets/                # 应用图标 + 标签页关闭图标（SVG）
 │   ├── backup.py              # 版本备份工具 + 命令行入口
 │   ├── converter.py           # 转换门面与参数数据类
 │   ├── convert_page.py        # 转换中心界面 + 差异色带
@@ -249,6 +265,12 @@ python -m clara.backup "1.0.0 初始版本"
 ## 8. 版本更新记录
 
 版本号规则：每一位只占一位数字，`1.0.9` 之后是 `1.1.0`，再到 `1.1.1` … `1.1.9`、`1.2.0`。
+
+### 1.6.6 — Windows 安装程序
+- `build_setup.ps1` 用 PyInstaller 打包无控制台 EXE，再由 Inno Setup 6 生成安装包。
+- 安装向导支持选择目录，并提供 `.md` 关联、桌面快捷方式、开始菜单快捷方式三个勾选项。
+- 双击 `.md` 文件时路径会传给程序（`app.py` 现在会打开 `argv` 中的文件）。
+- 应用图标与蓝色向导图片由 `installer/make_assets.py` 生成。
 
 ### 1.6.5 — 深色模式标签页关闭按钮可见
 - 标签页关闭“✕”改用随主题切换的 SVG 图标：深色标签上为浅灰、浅色标签上为深灰，并带悬停高亮。

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
@@ -34,6 +35,12 @@ def main() -> int:
 
     window = MainWindow()
     window.show()
+    # 双击关联文件或命令行传入路径时直接打开
+    for arg in sys.argv[1:]:
+        candidate = Path(arg)
+        if candidate.is_file():
+            window.open_path(candidate)
+            break
     return app.exec()
 
 
