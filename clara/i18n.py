@@ -188,6 +188,10 @@ STRINGS: dict[str, tuple[str, str]] = {
     "msg.open_failed": ("无法打开文件：{err}", "Cannot open file: {err}"),
     "msg.save_failed": ("保存失败：{err}", "Save failed: {err}"),
     "msg.convert_failed": ("转换失败：{err}", "Conversion failed: {err}"),
+    "msg.pdf_no_text": (
+        "该 PDF 没有可提取的文字，无法显示 Markdown 视图",
+        "This PDF has no extractable text; Markdown views are unavailable",
+    ),
     "msg.export_done": ("已导出到：{path}", "Exported to: {path}"),
     "msg.exists_title": ("文件已存在", "File already exists"),
     "msg.exists_text": (
