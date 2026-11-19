@@ -148,6 +148,7 @@ STRINGS: dict[str, tuple[str, str]] = {
     "conv.refresh": ("刷新预览", "Refresh"),
     "conv.diff": ("差异概览", "Diff overview"),
     "conv.no_file": ("未选择文件（将使用当前文档）", "No file selected (current doc will be used)"),
+    "conv.no_file_plain": ("未选择文件", "No file selected"),
     "msg.no_recent": ("暂无最近文件", "No recent files"),
     "recent.remove": ("移除该记录", "Remove from recent"),
     "recent.clear": ("清空所有记录", "Clear all recent"),

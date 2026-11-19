@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.5.2** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.5.3** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: The conversion center remembers the source file for each direction. [Full version history ↓](#8-version-history)
+Latest: The "Use current document" button is hidden for Word/PDF → Markdown. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.5.3 — Hide "Use current document" for reverse directions
+- In Word → Markdown and PDF → Markdown the Use current document button is hidden, since those directions require a Word/PDF source file; it reappears in the Markdown → Word/PDF directions.
 
 ### 1.5.2 — Remember the chosen source file per direction
 - The conversion center now remembers the source file for each source type (Markdown / Word / PDF), so switching between the four direction buttons no longer loses what you opened; switching back restores the previous file as long as it still exists.

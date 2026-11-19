@@ -377,7 +377,8 @@ class ConvertPage(QWidget):
             self.file_label.setText(Path(self.source_file).name)
             self.file_label.setToolTip(self.source_file)
         else:
-            self.file_label.setText(self.i18n.t("conv.no_file"))
+            key = "conv.no_file" if DIRECTION_SOURCE[self.direction()] == "md" else "conv.no_file_plain"
+            self.file_label.setText(self.i18n.t(key))
             self.file_label.setToolTip("")
 
     def _on_direction_changed(self) -> None:
@@ -389,13 +390,15 @@ class ConvertPage(QWidget):
             self.source_file = (
                 remembered if remembered and Path(remembered).exists() else None
             )
-            self._update_file_label()
+        self._update_file_label()
 
         # 仅导出 Word / PDF 时可设置纸张、页边距与字号
         target_is_md = kind != "md"
         self.paper_combo.setEnabled(not target_is_md)
         self.margin_spin.setEnabled(not target_is_md)
         self.fontsize_spin.setEnabled(not target_is_md)
+        # 反向转换必须选源文件，「使用当前文档」没有意义
+        self.use_current_btn.setVisible(not target_is_md)
         self.choose_btn.setEnabled(True)
         self.refresh()
 
