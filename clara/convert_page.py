@@ -136,6 +136,7 @@ class ConvertPage(QWidget):
         self.i18n = i18n
         self.dark = dark
         self.source_file: str | None = None
+        self._source_files: dict[str, str] = {}  # 按源类型记住上次选择的文件
         self._provider = None  # 由主窗口注入：返回 (markdown 文本, 当前文件路径)
 
         self._timer = QTimer(self)
@@ -341,6 +342,7 @@ class ConvertPage(QWidget):
 
     def set_source_file(self, path: str) -> None:
         self.source_file = path
+        self._source_files[DIRECTION_SOURCE[self.direction()]] = path
         self._update_file_label()
         self.refresh()
 
@@ -360,11 +362,13 @@ class ConvertPage(QWidget):
         )
         if path:
             self.source_file = path
+            self._source_files[kind] = path
             self._update_file_label()
             self.refresh()
 
     def _use_current(self) -> None:
         self.source_file = None
+        self._source_files.pop("md", None)
         self._update_file_label()
         self.refresh()
 
@@ -379,8 +383,12 @@ class ConvertPage(QWidget):
     def _on_direction_changed(self) -> None:
         kind = DIRECTION_SOURCE[self.direction()]
         ext = {"md": ".md", "docx": ".docx", "pdf": ".pdf"}[kind]
-        if self.source_file and Path(self.source_file).suffix.lower() != ext:
-            self.source_file = None
+        if self.source_file is None or Path(self.source_file).suffix.lower() != ext:
+            # 切到需要的源类型时，优先恢复该类型上次选过的文件
+            remembered = self._source_files.get(kind)
+            self.source_file = (
+                remembered if remembered and Path(remembered).exists() else None
+            )
             self._update_file_label()
 
         # 仅导出 Word / PDF 时可设置纸张、页边距与字号
