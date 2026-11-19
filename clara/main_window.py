@@ -324,7 +324,7 @@ class MainWindow(QMainWindow):
         if self.pages.currentIndex() != 1:
             self._convert_return_tab = self.ribbon.tab_of_action()
         self.pages.setCurrentIndex(1)
-        self.ribbon.set_tab(4)
+        self.ribbon.set_tab_key("tab.convert")
 
     def _show_convert(self, direction: str) -> None:
         self._enter_convert()
@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
 
     def _set_mode(self, mode: str) -> None:
         self.pages.setCurrentIndex(0)
-        self.ribbon.set_tab(1)
+        self.ribbon.set_tab_key("tab.home")
         self.editor.set_mode(mode)
 
     def _toggle_outline(self) -> None:

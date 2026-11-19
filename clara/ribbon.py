@@ -120,19 +120,6 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
         ],
     ),
     (
-        "tab.settings",
-        [
-            (
-                "group.tools",
-                [
-                    ("act.autosave", "AS"),
-                    ("act.restore_session", "RS"),
-                    ("act.about", "i"),
-                ],
-            ),
-        ],
-    ),
-    (
         "tab.convert",
         [
             (
@@ -143,6 +130,19 @@ RIBBON_LAYOUT: list[tuple[str, list[tuple[str, list[tuple[str, str]]]]]] = [
                     ("act.md2pdf", "M>P"),
                     ("act.docx2md", "W>M"),
                     ("act.pdf2md", "P>M"),
+                ],
+            ),
+        ],
+    ),
+    (
+        "tab.settings",
+        [
+            (
+                "group.tools",
+                [
+                    ("act.autosave", "AS"),
+                    ("act.restore_session", "RS"),
+                    ("act.about", "i"),
                 ],
             ),
         ],
@@ -480,6 +480,12 @@ class RibbonBar(QWidget):
 
     def tab_of_action(self) -> int:
         return self._current_tab
+
+    def set_tab_key(self, key: str) -> None:
+        """按选项卡键切换（避免依赖布局里的下标）。"""
+        keys = [tab_key for tab_key, _groups in RIBBON_LAYOUT]
+        if key in keys:
+            self.set_tab(keys.index(key))
 
     def _toggle_collapse(self) -> None:
         self._body_visible = not self._body_visible
