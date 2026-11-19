@@ -5,9 +5,19 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 ACCENT = "#2b579a"          # Word 主蓝
 ACCENT_LIGHT = "#e8f0fb"
 ACCENT_PRESSED = "#d3e2f7"
+
+_ASSETS = Path(__file__).resolve().parent / "assets"
+
+
+def _close_icon(dark: bool) -> str:
+    """标签页关闭按钮的图标路径（浅色主题用深灰叉，深色主题用浅灰叉）。"""
+    name = "close_dark.svg" if dark else "close_light.svg"
+    return (_ASSETS / name).as_posix()
 
 
 def build_stylesheet(dark: bool = False) -> str:
@@ -306,5 +316,15 @@ def build_stylesheet(dark: bool = False) -> str:
         border: 1px solid {c['border']};
         border-bottom: none;
         border-top: 2px solid {c['accent']};
+    }}
+    QTabBar#DocTabs::close-button {{
+        image: url("{_close_icon(dark)}");
+        width: 14px;
+        height: 14px;
+        margin: 0 2px 0 0;
+        border-radius: 3px;
+    }}
+    QTabBar#DocTabs::close-button:hover {{
+        background: {c['ribbon_hover']};
     }}
     """

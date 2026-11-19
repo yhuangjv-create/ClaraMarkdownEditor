@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.6.4** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.6.5** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: The About dialog now only shows version info and a Close button. [Full version history ↓](#8-version-history)
+Latest: The tab close “✕” is now clearly visible in dark mode. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -83,6 +83,7 @@ ClaraMarkdownEditor/
 ├── LICENSE                    # MIT License
 ├── clara/                     # Application package
 │   ├── __init__.py            # App name, organization, version
+│   ├── assets/                # Tab close icons (light/dark SVG)
 │   ├── backup.py              # Versioned full-project backup + CLI
 │   ├── converter.py           # Conversion facade and option dataclass
 │   ├── convert_page.py        # Conversion center UI + diff strip
@@ -248,6 +249,9 @@ This module is used only from the command line; the About dialog no longer expos
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.6.5 — Tab close button visible in dark mode
+- The document tab close “✕” now uses a theme-aware SVG icon: light grey on dark tabs, dark grey on light tabs, with a hover highlight.
 
 ### 1.6.4 — Developer backup button removed from About
 - The “Create developer backup” button is gone from the About dialog, which now only shows the version text and a single Close button.
