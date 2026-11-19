@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.5.6** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.5.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: The Settings tab now sits after Convert. [Full version history ↓](#8-version-history)
+Latest: PDF sources render as real pages. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.5.7 — Real PDF rendering in the conversion center
+- PDF sources (PDF → MD, drag-and-drop) now show real pages rendered with QtPdf, keeping the original fonts, colors and layout instead of plain extracted text.
+- Import PDF now opens the conversion center with the same real preview, with the generated Markdown on the right.
 
 ### 1.5.6 — Settings tab moved after Convert
 - The Ribbon order is now File / Home / Insert / Convert / Settings. Tab switching for the conversion center and mode buttons is resolved by tab key instead of a fixed index, so the order can change safely.

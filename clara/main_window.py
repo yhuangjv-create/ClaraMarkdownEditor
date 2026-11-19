@@ -46,7 +46,7 @@ from .editor import MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG, MarkdownEditor
 from .fileutils import notify_exported, resolve_overwrite
 from .i18n import I18n, install_qt_translator
 from .outline import OutlinePanel
-from .pdf_io import export_md_to_pdf, import_pdf_to_md
+from .pdf_io import export_md_to_pdf
 from .render import count_words
 from .ribbon import RibbonBar
 from .settings import Settings
@@ -1011,12 +1011,10 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        try:
-            text = import_pdf_to_md(path)
-        except Exception as exc:
-            QMessageBox.critical(self, self.i18n.t("common.error"), self.i18n.t("msg.convert_failed", err=exc))
-            return
-        self._load_imported(text)
+        # 交给转换中心：左侧显示真实 PDF 页面，右侧给出可保存的 Markdown
+        self._enter_convert()
+        self.convert_page.set_direction("pdf2md")
+        self.convert_page.set_source_file(path)
 
     def _load_imported(self, text: str) -> None:
         self.pages.setCurrentIndex(0)

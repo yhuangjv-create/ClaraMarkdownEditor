@@ -13,7 +13,7 @@ from __future__ import annotations
 import difflib
 from pathlib import Path
 
-from PySide6.QtCore import QRectF, Qt, QTimer, Signal
+from PySide6.QtCore import QMargins, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
     QComboBox,
@@ -31,6 +31,13 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+try:  # QtPdf 随 PySide6 一起安装，缺失时退回文字预览
+    from PySide6.QtPdf import QPdfDocument
+    from PySide6.QtPdfWidgets import QPdfView
+except ImportError:  # pragma: no cover
+    QPdfDocument = None
+    QPdfView = None
 
 from .converter import (
     DIRECTIONS,
@@ -126,6 +133,44 @@ class DiffStrip(QWidget):
             seg_width = width * n / total
             painter.fillRect(QRectF(x, 0, max(1.0, seg_width), height), colors.get(tag, colors["equal"]))
             x += seg_width
+
+
+class PdfPreview(QWidget):
+    """用 QtPdf 渲染真实 PDF 页面，保留原始字体、颜色与排版。"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.document = QPdfDocument(self)
+        self.view = QPdfView(self)
+        self.view.setObjectName("PdfPreview")
+        self.view.setDocument(self.document)
+        self.view.setPageMode(QPdfView.PageMode.MultiPage)
+        self.view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
+        self.view.setPageSpacing(10)
+        self.view.setDocumentMargins(QMargins(8, 8, 8, 8))
+        layout.addWidget(self.view, 1)
+        self._path = ""
+
+    def load(self, path: str) -> bool:
+        """加载 PDF；渲染由 Qt 在事件循环中完成。"""
+        try:
+            if path != self._path:
+                self.document.close()
+                error = self.document.load(path)
+                self._path = path
+                if error != QPdfDocument.Error.None_:
+                    self._path = ""
+                    return False
+            return True
+        except Exception:
+            self._path = ""
+            return False
+
+    def clear(self) -> None:
+        self.document.close()
+        self._path = ""
 
 
 class ConvertPage(QWidget):
@@ -258,7 +303,15 @@ class ConvertPage(QWidget):
         self.left_browser.setObjectName("Preview")
         self.left_browser.setOpenExternalLinks(True)
         self.left_browser.setFrameShape(QFrame.NoFrame)
-        left_layout.addWidget(self.left_browser, 1)
+        self.pdf_preview = PdfPreview() if QPdfView is not None else None
+        if self.pdf_preview is not None:
+            self.left_stack = QStackedWidget()
+            self.left_stack.addWidget(self.left_browser)
+            self.left_stack.addWidget(self.pdf_preview)
+            left_layout.addWidget(self.left_stack, 1)
+        else:
+            self.left_stack = None
+            left_layout.addWidget(self.left_browser, 1)
         self.splitter.addWidget(left_panel)
 
         right_panel = QWidget()
@@ -408,6 +461,9 @@ class ConvertPage(QWidget):
         self.status_label.setText(message)
         self.status_label.setStyleSheet(f"color: {color};")
         self.left_browser.setHtml(f"<p style='color:{color};padding:16px'>{message}</p>")
+        if self.left_stack is not None:
+            self.pdf_preview.clear()
+            self.left_stack.setCurrentWidget(self.left_browser)
         self.right_stack.setCurrentIndex(0)
         self.right_browser.setHtml("<p style='color:#999;padding:16px'>—</p>")
         self.diff_strip.set_texts("", "")
@@ -437,6 +493,7 @@ class ConvertPage(QWidget):
             self.left_browser.setHtml(left_content)
         else:
             self.left_browser.setPlainText(left_content)
+        self._show_source_view(direction, source_file)
 
         if right_is_html:
             self.right_browser.setHtml(right_content)
@@ -464,6 +521,20 @@ class ConvertPage(QWidget):
         else:
             source_name = self.i18n.t("common.current_doc")
         self.status_label.setText(source_name)
+
+    def _show_source_view(self, direction: str, source_file: str | None) -> None:
+        """PDF 源显示真实页面；其余源仍用 HTML 效果预览。"""
+        if self.left_stack is None or self.pdf_preview is None:
+            return
+        if (
+            DIRECTION_SOURCE[direction] == "pdf"
+            and source_file
+            and self.pdf_preview.load(source_file)
+        ):
+            self.left_stack.setCurrentWidget(self.pdf_preview)
+        else:
+            self.pdf_preview.clear()
+            self.left_stack.setCurrentWidget(self.left_browser)
 
     # ------------------------------------------------------------------
     def run_conversion(self) -> None:
