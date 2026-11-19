@@ -8,6 +8,10 @@
 
 最新：提供 Windows 安装程序（EXE），可选择安装目录，并可勾选关联 MD 文件、桌面快捷方式与开始菜单快捷方式。[完整更新记录 ↓](#8-版本更新记录)
 
+![ClaraMarkdownEditor 软件截图](docs/screenshot.png)
+
+*分屏预览：大纲、源码与实时渲染。*
+
 ---
 
 ## 1. 快速开始
@@ -87,6 +91,8 @@ ClaraMarkdownEditor/
 ├── build_setup.ps1            # PyInstaller + Inno Setup 一键打包
 ├── run.bat                    # Windows 启动脚本（pythonw 无控制台）
 ├── requirements.txt           # Python 依赖
+├── docs/                      # README 展示图片
+│   └── screenshot.png
 ├── installer/                 # 安装包源文件
 │   ├── ClaraMarkdownEditor.iss    # Inno Setup 脚本
 │   ├── make_assets.py             # 生成 app.ico 与向导图片

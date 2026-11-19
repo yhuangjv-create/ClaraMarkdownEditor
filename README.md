@@ -8,6 +8,10 @@ Version: **1.6.6** · Platform: Windows 10/11 (macOS/Linux largely work with PyS
 
 Latest: Windows installer (EXE) with directory choice and optional .md association, desktop and Start menu shortcuts. [Full version history ↓](#8-version-history)
 
+![ClaraMarkdownEditor screenshot](docs/screenshot.png)
+
+*Split preview with outline, source editor and live rendered Markdown.*
+
 ---
 
 ## 1. Quick start
@@ -87,6 +91,8 @@ ClaraMarkdownEditor/
 ├── build_setup.ps1            # PyInstaller + Inno Setup one-shot build
 ├── run.bat                    # Windows launcher (pythonw, no console)
 ├── requirements.txt           # Python dependencies
+├── docs/                      # README images
+│   └── screenshot.png
 ├── installer/                 # Installer sources
 │   ├── ClaraMarkdownEditor.iss    # Inno Setup script
 │   ├── make_assets.py             # Generates app.ico + wizard images
