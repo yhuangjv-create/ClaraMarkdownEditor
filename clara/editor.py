@@ -393,7 +393,8 @@ class MarkdownEditor(QWidget):
         self.pdf_holder = QWidget()
         self.pdf_layout = QVBoxLayout(self.pdf_holder)
         self.pdf_layout.setContentsMargins(0, 0, 0, 0)
-        self.splitter.insertWidget(1, self.pdf_holder)
+        self.splitter.addWidget(self.pdf_holder)
+        self.splitter.setStretchFactor(self.splitter.indexOf(self.pdf_holder), 1)
         self.pdf_holder.hide()
 
         self.find_bar = FindBar(self.source, i18n)
@@ -554,10 +555,14 @@ class MarkdownEditor(QWidget):
         elif mode == MODE_SOURCE:
             self.source.setFocus()
         elif show_pdf:
-            self.splitter.setSizes([600, 600])
+            self.splitter.setSizes(
+                [600, 0, 0, 600] if mode == MODE_SPLIT else [0, 0, 0, 600]
+            )
         else:
             self._refresh_preview()
-            self.splitter.setSizes([600, 600])
+            self.splitter.setSizes(
+                [600, 600, 0, 0] if mode == MODE_SPLIT else [0, 0, 600, 0]
+            )
 
         if emit:
             self.modeChanged.emit(mode)
