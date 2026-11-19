@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.5.4** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.5.5** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Choosing a .md file now works in Markdown → Word/PDF. [Full version history ↓](#8-version-history)
+Latest: Converting a chosen .md file no longer shows "nothing to convert". [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.5.5 — Markdown file conversion no longer blocked
+- Converting a .md file chosen with Choose file in Markdown → Word/PDF no longer shows "There is nothing to convert"; the warning only appears when neither a source file nor current document content is available, matching File → Export Word/PDF.
 
 ### 1.5.4 — Markdown source file in Markdown → Word/PDF
 - Choosing a .md file with Choose file in the Markdown → Word and Markdown → PDF directions now previews that file in both panes and converts it; the current document is used only when no file is selected.

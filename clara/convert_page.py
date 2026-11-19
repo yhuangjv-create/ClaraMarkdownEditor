@@ -474,7 +474,8 @@ class ConvertPage(QWidget):
         if DIRECTION_SOURCE[direction] != "md" and not self.source_file:
             QMessageBox.warning(self, self.i18n.t("common.info"), self.i18n.t("conv.need_file"))
             return
-        if DIRECTION_SOURCE[direction] == "md" and not md_text.strip():
+        # 选了 Markdown 文件时按文件内容转换，不再要求当前文档有内容
+        if DIRECTION_SOURCE[direction] == "md" and not self.source_file and not md_text.strip():
             QMessageBox.warning(self, self.i18n.t("common.info"), self.i18n.t("conv.need_source"))
             return
 
