@@ -371,13 +371,36 @@ class MainWindow(QMainWindow):
         bar.open()
 
     def _set_mode(self, mode: str) -> None:
+        if not self._leave_pdf_view():
+            return
         self.pages.setCurrentIndex(0)
         self.editor.set_mode(mode)
 
+    def _leave_pdf_view(self) -> bool:
+        """PDF 标签没有 Markdown 视图，切到最近的 Markdown 文档。"""
+        if not self._is_pdf_active():
+            return True
+        index = self._markdown_fallback_index()
+        if index is None:
+            return False
+        self._activate_document(index)
+        return True
+
+    def _markdown_fallback_index(self) -> int | None:
+        order = list(range(self._active - 1, -1, -1)) + list(
+            range(self._active + 1, len(self._docs))
+        )
+        for index in order:
+            if self._docs[index].get("kind") != "pdf":
+                return index
+        return None
+
     def _toggle_outline(self) -> None:
+        if not self._leave_pdf_view():
+            return
         visible = not self.settings.outline_visible
         self.settings.outline_visible = visible
-        self.outline.setVisible(visible and not self._is_pdf_active())
+        self.outline.setVisible(visible)
 
     def _set_autosave(self, enabled: bool) -> None:
         self.settings.autosave_enabled = enabled

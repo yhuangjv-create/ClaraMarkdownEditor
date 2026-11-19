@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.5.9** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.6.0** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: Mode buttons no longer switch Ribbon tabs. [Full version history ↓](#8-version-history)
+Latest: View buttons work from a PDF tab. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,9 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.6.0 — View buttons work from a PDF tab
+- With a PDF tab active, clicking Outline / Source / Split / WYSIWYG now switches to the nearest Markdown document and applies the action instead of appearing to do nothing.
 
 ### 1.5.9 — Mode buttons stay on the current tab
 - Clicking Source / Split / WYSIWYG no longer jumps the Ribbon back to Home; the active tab stays where it is.
