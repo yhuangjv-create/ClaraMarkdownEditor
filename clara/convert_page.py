@@ -39,6 +39,8 @@ except ImportError:  # pragma: no cover
     QPdfDocument = None
     QPdfView = None
 
+PDF_PREVIEW_AVAILABLE = QPdfView is not None
+
 from .converter import (
     DIRECTIONS,
     DIRECTION_SOURCE,

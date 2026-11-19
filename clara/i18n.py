@@ -176,6 +176,8 @@ STRINGS: dict[str, tuple[str, str]] = {
     "status.words": ("字数：{n}", "Words: {n}"),
     "status.line": ("行 {line}，列 {col}", "Ln {line}, Col {col}"),
     "status.mode": ("模式：{mode}", "Mode: {mode}"),
+    "status.pages": ("共 {n} 页", "{n} pages"),
+    "status.pdf_readonly": ("PDF 为只读预览，不能保存", "PDF preview is read-only"),
     "status.saved": ("已保存", "Saved"),
     "status.modified": ("未保存的更改", "Unsaved changes"),
     "status.converted": ("已转换：{name}", "Converted: {name}"),

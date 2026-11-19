@@ -4,9 +4,9 @@
 
 [中文说明 / Chinese README](README.zh-CN.md)
 
-Version: **1.5.7** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
+Version: **1.5.8** · Platform: Windows 10/11 (macOS/Linux largely work with PySide6) · License: [MIT](LICENSE)
 
-Latest: PDF sources render as real pages. [Full version history ↓](#8-version-history)
+Latest: Import PDF opens a read-only PDF tab in the editor. [Full version history ↓](#8-version-history)
 
 ---
 
@@ -248,6 +248,10 @@ This is the same routine used by the “BKP” Ribbon button.
 ## 8. Version history
 
 Versioning rule: each number stays single-digit — after `1.0.9` comes `1.1.0`, then `1.1.1` … `1.1.9`, `1.2.0`.
+
+### 1.5.8 — Import PDF previews in the main window
+- File → Import PDF now opens the PDF as a read-only tab in the editor area with real page rendering, instead of jumping to the conversion center.
+- The status bar shows the page count; saving a PDF tab is blocked, and open PDF tabs are restored with the session.
 
 ### 1.5.7 — Real PDF rendering in the conversion center
 - PDF sources (PDF → MD, drag-and-drop) now show real pages rendered with QtPdf, keeping the original fonts, colors and layout instead of plain extracted text.

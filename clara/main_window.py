@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
 
 from . import APP_NAME, __version__
 from .backup import create_backup
-from .convert_page import ConvertPage
+from .convert_page import PDF_PREVIEW_AVAILABLE, ConvertPage, PdfPreview
 from .docx_io import export_md_to_docx, import_docx_to_md
 from .editor import MODE_SOURCE, MODE_SPLIT, MODE_WYSIWYG, MarkdownEditor
 from .fileutils import notify_exported, resolve_overwrite
@@ -170,7 +170,15 @@ class MainWindow(QMainWindow):
         self.editor.modeChanged.connect(self._on_mode_changed)
         self.editor.documentLoaded.connect(self._on_document_loaded)
         self.editor.filesDropped.connect(self._handle_dropped_files)
-        self.main_splitter.addWidget(self.editor)
+
+        # 编辑区与 PDF 预览共用同一块位置：导入的 PDF 直接在这里显示
+        self.doc_stack = QStackedWidget()
+        self.doc_stack.addWidget(self.editor)
+        self.pdf_view = PdfPreview() if PDF_PREVIEW_AVAILABLE else None
+        if self.pdf_view is not None:
+            self.doc_stack.addWidget(self.pdf_view)
+            self.pdf_view.document.pageCountChanged.connect(self._on_pdf_pages_changed)
+        self.main_splitter.addWidget(self.doc_stack)
 
         self.main_splitter.setStretchFactor(0, 0)
         self.main_splitter.setStretchFactor(1, 1)
@@ -368,9 +376,9 @@ class MainWindow(QMainWindow):
         self.editor.set_mode(mode)
 
     def _toggle_outline(self) -> None:
-        visible = not self.outline.isVisible()
-        self.outline.setVisible(visible)
+        visible = not self.settings.outline_visible
         self.settings.outline_visible = visible
+        self.outline.setVisible(visible and not self._is_pdf_active())
 
     def _set_autosave(self, enabled: bool) -> None:
         self.settings.autosave_enabled = enabled
@@ -424,15 +432,28 @@ class MainWindow(QMainWindow):
     def _store_active(self) -> None:
         if 0 <= self._active < len(self._docs):
             doc = self._docs[self._active]
-            doc["text"] = self.editor.get_markdown()
             doc["dirty"] = self.dirty
             doc["path"] = self.current_file
-            doc["cursor"] = self.editor.source.textCursor().position()
+            if doc.get("kind") != "pdf":
+                doc["text"] = self.editor.get_markdown()
+                doc["cursor"] = self.editor.source.textCursor().position()
 
     def _save_session(self, active: int | None = None) -> None:
         """把当前打开的所有标签页与未保存内容写入会话，供下次启动恢复。"""
         docs = []
         for doc in self._docs:
+            if doc.get("kind") == "pdf":
+                if doc["path"] is not None:
+                    docs.append(
+                        {
+                            "path": str(doc["path"]),
+                            "text": "",
+                            "dirty": False,
+                            "cursor": 0,
+                            "kind": "pdf",
+                        }
+                    )
+                continue
             if doc["path"] is None and not doc["text"].strip() and not doc["dirty"]:
                 continue
             docs.append(
@@ -441,6 +462,7 @@ class MainWindow(QMainWindow):
                     "text": doc["text"],
                     "dirty": bool(doc["dirty"]),
                     "cursor": int(doc.get("cursor", 0) or 0),
+                    "kind": "md",
                 }
             )
         state = {"active": self._active if active is None else active, "docs": docs}
@@ -466,6 +488,13 @@ class MainWindow(QMainWindow):
             text = entry.get("text") or ""
             dirty = bool(entry.get("dirty"))
             path = Path(path_text) if path_text else None
+            if entry.get("kind") == "pdf":
+                if path is None or not path.exists():
+                    continue
+                self._add_document(path, "", kind="pdf")
+                cursors.append((len(self._docs) - 1, 0))
+                restored += 1
+                continue
             if path is not None:
                 if not path.exists():
                     if not text.strip():
@@ -494,7 +523,8 @@ class MainWindow(QMainWindow):
         self._activate_document(min(max(0, active), len(self._docs) - 1))
         for doc_index, position in cursors:
             self._docs[doc_index]["cursor"] = position
-        self._apply_cursor_position(self._docs[self._active].get("cursor"))
+        if self._docs[self._active].get("kind") != "pdf":
+            self._apply_cursor_position(self._docs[self._active].get("cursor"))
         return True
 
     def _apply_cursor_position(self, position) -> None:
@@ -503,9 +533,16 @@ class MainWindow(QMainWindow):
             cursor.setPosition(min(position, len(self.editor.source.toPlainText())))
             self.editor.source.setTextCursor(cursor)
 
-    def _add_document(self, path: str | Path | None, text: str, dirty: bool = False) -> int:
+    def _add_document(
+        self, path: str | Path | None, text: str, dirty: bool = False, kind: str = "md"
+    ) -> int:
         self._store_active()
-        doc = {"path": Path(path) if path else None, "text": text, "dirty": dirty}
+        doc = {
+            "path": Path(path) if path else None,
+            "text": text,
+            "dirty": dirty,
+            "kind": kind,
+        }
         self._docs.append(doc)
         index = len(self._docs) - 1
         self.doc_tabs.blockSignals(True)
@@ -527,12 +564,20 @@ class MainWindow(QMainWindow):
         doc = self._docs[index]
         self.current_file = doc["path"]
         self.dirty = doc["dirty"]
-        self.editor.set_markdown(doc["text"])
-        self._apply_cursor_position(doc.get("cursor"))
+        if doc.get("kind") == "pdf" and self.pdf_view is not None and doc["path"]:
+            self.pdf_view.load(str(doc["path"]))
+            self.doc_stack.setCurrentWidget(self.pdf_view)
+            self.outline.setVisible(False)
+        else:
+            self.doc_stack.setCurrentWidget(self.editor)
+            self.outline.setVisible(self.settings.outline_visible)
+            self.editor.set_markdown(doc["text"])
+            self._apply_cursor_position(doc.get("cursor"))
         self.doc_tabs.blockSignals(True)
         self.doc_tabs.setCurrentIndex(index)
         self.doc_tabs.blockSignals(False)
         self._update_titles()
+        self._update_status()
 
     def _on_tab_changed(self, index: int) -> None:
         if index >= 0:
@@ -574,11 +619,23 @@ class MainWindow(QMainWindow):
         else:
             self._add_document(None, "")
 
+    def _on_pdf_pages_changed(self, _count: int = 0) -> None:
+        if self._is_pdf_active():
+            self._update_status()
+
     def _is_blank_untitled(self) -> bool:
         return (
             self.current_file is None
             and not self.dirty
+            and not self._is_pdf_active()
             and not self.editor.get_markdown().strip()
+        )
+
+    def _is_pdf_active(self) -> bool:
+        return (
+            self.pdf_view is not None
+            and 0 <= self._active < len(self._docs)
+            and self._docs[self._active].get("kind") == "pdf"
         )
 
     def _load_into_active(self, path: str | Path | None, text: str, dirty: bool = False) -> None:
@@ -586,8 +643,11 @@ class MainWindow(QMainWindow):
         doc["path"] = Path(path) if path else None
         doc["text"] = text
         doc["dirty"] = dirty
+        doc["kind"] = "md"
         self.current_file = doc["path"]
         self.dirty = dirty
+        self.doc_stack.setCurrentWidget(self.editor)
+        self.outline.setVisible(self.settings.outline_visible)
         self.editor.set_markdown(text)
         self._update_active_tab()
         self._update_titles()
@@ -637,13 +697,19 @@ class MainWindow(QMainWindow):
         self.status_mode.setText(self.i18n.t("status.mode", mode=names.get(mode, mode)))
 
     def _update_status(self) -> None:
+        if self._is_pdf_active():
+            pages = self.pdf_view.document.pageCount()
+            self.status_words.setText(self.i18n.t("status.pages", n=pages))
+            self.status_cursor.setText("")
+            self.status_mode.setText("PDF")
+            return
         text = self.editor.get_markdown()
         self.status_words.setText(self.i18n.t("status.words", n=count_words(text)))
         self._on_cursor_moved(1, 1)
         self._on_mode_changed(self.editor.mode)
 
     def _refresh_outline(self) -> None:
-        self.outline.refresh(self.editor.get_markdown())
+        self.outline.refresh("" if self._is_pdf_active() else self.editor.get_markdown())
 
     def _on_document_loaded(self) -> None:
         self._refresh_outline()
@@ -714,6 +780,9 @@ class MainWindow(QMainWindow):
         self._update_status()
 
     def save_document(self) -> bool:
+        if self._is_pdf_active():
+            self.statusBar().showMessage(self.i18n.t("status.pdf_readonly"), 2000)
+            return False
         if self.current_file is None:
             return self.save_document_as()
         text = self.editor.get_markdown()
@@ -1011,10 +1080,43 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        # 交给转换中心：左侧显示真实 PDF 页面，右侧给出可保存的 Markdown
-        self._enter_convert()
-        self.convert_page.set_direction("pdf2md")
-        self.convert_page.set_source_file(path)
+        if self.pdf_view is None:
+            # 缺少 QtPdf 时退回转换中心
+            self._enter_convert()
+            self.convert_page.set_direction("pdf2md")
+            self.convert_page.set_source_file(path)
+            return
+        file = Path(path).resolve()
+        self.pages.setCurrentIndex(0)
+        for index, doc in enumerate(self._docs):
+            if doc.get("kind") == "pdf" and doc["path"] == file:
+                self._activate_document(index)
+                break
+        else:
+            if self._is_blank_untitled():
+                self._load_pdf_into_active(file)
+            else:
+                self._add_document(file, "", kind="pdf")
+        self.settings.last_dir = str(file.parent)
+        self.settings.add_recent_file(str(file))
+        self._update_titles()
+        self._update_status()
+
+    def _load_pdf_into_active(self, path: Path) -> None:
+        """把当前空白文档替换为 PDF 预览。"""
+        doc = self._docs[self._active]
+        doc["path"] = path
+        doc["text"] = ""
+        doc["dirty"] = False
+        doc["kind"] = "pdf"
+        self.current_file = path
+        self.dirty = False
+        self.pdf_view.load(str(path))
+        self.doc_stack.setCurrentWidget(self.pdf_view)
+        self.outline.setVisible(False)
+        self._update_active_tab()
+        self._update_titles()
+        self._update_status()
 
     def _load_imported(self, text: str) -> None:
         self.pages.setCurrentIndex(0)
