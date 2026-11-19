@@ -372,7 +372,6 @@ class MainWindow(QMainWindow):
 
     def _set_mode(self, mode: str) -> None:
         self.pages.setCurrentIndex(0)
-        self.ribbon.set_tab_key("tab.home")
         self.editor.set_mode(mode)
 
     def _toggle_outline(self) -> None:
